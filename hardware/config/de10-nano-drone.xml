@@ -3,9 +3,9 @@
 
   <frequency Hz="50000000"/>
   <pipeline dual="false" />
-  <!-- <cores count="4" /> -->
-  <ExtMem size="500k" DevTypeRef="OCRam" />
-  <!-- <ExtMem size="1g" DevTypeRef="DDR3Bridge" /> -->
+  <cores count="4" />
+  <!-- <ExtMem size="500k" DevTypeRef="OCRam" /> -->
+  <ExtMem size="1g" DevTypeRef="DDR3Bridge" />
 
   <IOs>
   <IO DevTypeRef="Uart1" offset="6"/>

@@ -124,7 +124,7 @@ int main(int argc, char **argv)
     printf("C5 = %lu\n",Coff[4]);
     printf("C6 = %lu\n",Coff[5]);
   
-  for(int i=0;i<100;i++)
+  for(int i=0;i<1000;i++)
   check_barometerv2();
   return 0;
 }
