@@ -1,8 +1,9 @@
-MAIN?=test/baro_test
+MAIN?=test/baroTest
 #MAIN?=blinking
 # MAIN?=acts_props_uart2
 SERIAL?=/dev/ttyUSB0
 I2C?=../i2c-master/i2c_master
+BARO?=baro/baro
 # This is the trivial Hello World example, distributed over two .c files
 
 LDFLAGS?= \
@@ -11,7 +12,7 @@ LDFLAGS?= \
         -Xgold --defsym -Xgold __heap_end=0x070000
 
 all:
-	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(MAIN).c -o de10-nano.elf -lm
+	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c  $(MAIN).c -o de10-nano.elf -lm
 
 download:
 	patserdow -v $(SERIAL) de10-nano.elf

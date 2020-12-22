@@ -15,7 +15,10 @@
 #include "../basic_lib/timer.h"
 
 //Barometer v2 variables
-#define MS5611_ADDR 0x77
+#define BARO_REG        0xA0     // Register address for coeffifient
+#define MS5611_ADDR     0x77
+#define CMD_ADC_D1      0x48     // Pressure - 4096 resolution
+#define CMD_ADC_D2      0x58     // Temperature - 4096 resolution
 
 void read_barometer(void)
 {
