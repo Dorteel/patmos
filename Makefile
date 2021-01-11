@@ -35,7 +35,8 @@ VENDOR?=Altera
 #BOARD=ml605oc
 #BOARD=bemicro
 #BOARD?=altde2-70
-BOARD?=altde2-115
+#BOARD?=altde2-115
+BOARD?=de10-nano-drone
 #BOARD?=altde10-NANO-oc
 
 # Where to put elf files and binaries
