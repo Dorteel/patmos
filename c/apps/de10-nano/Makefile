@@ -13,7 +13,7 @@ LDFLAGS?= \
 
 all:
 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c  $(MAIN).c -o de10-nano.elf -lm
-
+	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c  $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm
 download:
 	patserdow -v $(SERIAL) de10-nano.elf
 
