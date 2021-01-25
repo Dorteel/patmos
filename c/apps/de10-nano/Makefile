@@ -1,6 +1,6 @@
 MAIN?=test/gps_test
 #MAIN?=blinking
-# MAIN?=acts_props_uart2
+MAIN?=test/imu_test
 SERIAL?=/dev/ttyUSB0
 I2C?=basic_lib/i2c_master
 BARO?=test/baro/baro

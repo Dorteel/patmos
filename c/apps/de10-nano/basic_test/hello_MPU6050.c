@@ -2,7 +2,8 @@
 #include <machine/patmos.h>
 #include <stdint.h>
 #include <machine/spm.h>
-#include "i2c_master.h"
+//#include "i2c_master.h"
+#include "../i2c-master/i2c_master.h"
 //LEDs
 #define LED ( *( ( volatile _IODEV unsigned * )	PATMOS_IO_LED ) )
 

@@ -26,6 +26,9 @@ entity patmos_top is
         --Second UART (UART2)
         oUart2Pins_txd       : out   std_logic;
         iUart2Pins_rxd       : in    std_logic;
+        --Third UART (UART3)
+        oUart3Pins_txd       : out   std_logic;
+        iUart3Pins_rxd       : in    std_logic;
         -- AAU I2C interface
         oMpuScl              : out   std_logic;
         ioMpuSda             : inout std_logic;
@@ -94,6 +97,8 @@ architecture rtl of patmos_top is
             io_Actuators_SData        : in    std_logic_vector(31 downto 0);
             io_Uart_tx                : out   std_logic;
             io_Uart_rx                : in    std_logic;
+            io_Uart_1_tx              : out std_logic;
+            io_Uart_1_rx              : in std_logic;
             io_UartCmp_tx             : out   std_logic;
             io_UartCmp_rx             : in    std_logic;
             io_SPIMaster_miso         : in    std_logic;
@@ -289,6 +294,8 @@ begin
         io_Actuators_SData   => actuatorsPins_SData,
         io_Uart_tx           => oUart2Pins_txd,
         io_Uart_rx           => iUart2Pins_rxd,
+        io_Uart_1_tx         => oUart3Pins_txd,
+        io_Uart_1_rx         => iUart3Pins_rxd,
         io_UartCmp_tx        => oUartPins_txd,
         io_UartCmp_rx        => iUartPins_rxd,
         io_SPIMaster_miso    => miso,

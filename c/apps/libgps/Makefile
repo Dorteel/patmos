@@ -1,4 +1,4 @@
-MAIN?=check_gps
+MAIN?=main
 
 LDFLAGS?= \
         -mpatmos-method-cache-size=0x1000 \

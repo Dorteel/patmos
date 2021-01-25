@@ -8,7 +8,7 @@
 //new
 //#include "TinyGPSpp.h"
 
-#define UART3 ((volatile _IODEV unsigned *)PATMOS_IO_UART3)
+#define UART3 ((volatile _IODEV unsigned *)PATMOS_IO_UART2)
 
 const unsigned int CPU_PERIOD = 20; //CPU period in ns.
 
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 {
   printf("Hello GPS!\n");
 
-  for (int j=0;j<10;j++)
+  for (int j=0;j<3;j++)
   // while(1)
   {
     // while(loop_timer + 4000 > get_cpu_usecs());                                                  //Start the pulse after 4000 micro seconds.
