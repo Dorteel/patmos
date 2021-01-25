@@ -1,6 +1,7 @@
-MAIN?=test/baroTest
+#MAIN?=test/motor_test
+#MAIN?=test/baroTest
 #MAIN?=blinking
-# MAIN?=acts_props_uart2
+MAIN?=test/imu_test
 SERIAL?=/dev/ttyUSB0
 I2C?=../i2c-master/i2c_master
 BARO?=baro/baro
@@ -12,6 +13,7 @@ LDFLAGS?= \
         -Xgold --defsym -Xgold __heap_end=0x070000
 
 all:
+# Original
 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c  $(MAIN).c -o de10-nano.elf -lm
 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c  $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm
 download:

@@ -74,6 +74,8 @@ set_location_assignment PIN_AA13 -to i2c_sda
 set_location_assignment PIN_AA26 -to ad0
 set_location_assignment PIN_AH13 -to oUart2Pins_txd
 set_location_assignment PIN_D8 -to iUart2Pins_rxd
+set_location_assignment PIN_AB23 -to oUart3Pins_txd
+set_location_assignment PIN_Y19 -to iUart3Pins_rxd
 set_location_assignment PIN_AD5 -to propdrive_out_port[0]
 set_location_assignment PIN_AE23 -to propdrive_out_port[1]
 set_location_assignment PIN_AD23 -to propdrive_out_port[2]

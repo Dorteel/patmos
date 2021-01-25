@@ -162,7 +162,7 @@ void check_gps(void) {
     //if (loop_counter > 1 && loop_counter < 500){
     if (loop_counter >=1 && loop_counter < 500){
       while (uart2_read(&gps_data)){
-        //printf("%c",gps_data);
+        printf("%c",gps_data);
         //The delimiter "$" is 36 in ASCII
         if(gps_data == 36){
           b_temp = true;
@@ -213,6 +213,7 @@ void check_gps(void) {
     }
 
     if (loop_counter == 500) {
+      printf("\n");
       printf("\n");
 
 

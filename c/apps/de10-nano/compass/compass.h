@@ -39,7 +39,7 @@ void read_compass() {
     actual_compass_heading += declination;                                 //Add the declination to the magnetic compass heading to get the geographic north.
     if (actual_compass_heading < 0) actual_compass_heading += 360;         //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
     else if (actual_compass_heading >= 360) actual_compass_heading -= 360; //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
-}
+};
 
 //At startup the registers of the compass need to be set. After that the calibration offset and scale values are calculated.
 void setup_compass() {
@@ -54,7 +54,7 @@ void setup_compass() {
     compass_offset_x = (compass_cal_values[1] - compass_cal_values[0]) / 2 - compass_cal_values[1];
     compass_offset_y = (((float)compass_cal_values[3] - compass_cal_values[2]) / 2 - compass_cal_values[3]) * compass_scale_y;
     compass_offset_z = (((float)compass_cal_values[5] - compass_cal_values[4]) / 2 - compass_cal_values[5]) * compass_scale_z;
-}
+};
 
 
 //The following subrouting calculates the smallest difference between two heading values.
@@ -68,7 +68,7 @@ float course_deviation(float course_b, float course_c) {
         course_a = actual_course_mirrored - base_course_mirrored;
     }
     return course_a;
-}
+};
 
 
 
