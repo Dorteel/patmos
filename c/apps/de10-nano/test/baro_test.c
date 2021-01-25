@@ -159,21 +159,6 @@ int main(int argc, char **argv)
 {
   printf("Hello Baro!\n");
   
-//  for (int i = 0; i < 6; i++) {                   //Start communication with the MPU-6050.
-//      Coff[i] = i2c_reg8_read16b(MS5611_ADDR, 0xA2 + i*2);
-//
-//    }
-//    printf("C1 = %lu\n",Coff[0]);
-//    printf("C2 = %lu\n",Coff[1]);
-//    printf("C3 = %lu\n",Coff[2]);
-//    printf("C4 = %lu\n",Coff[3]);
-//    printf("C5 = %lu\n",Coff[4]);
-//    printf("C6 = %lu\n",Coff[5]);
-//
-//  for(int i=0;i<100;i++)
-//  check_barometerv2();
-
-
   ///////baromter v2
     check_barometer();
   return 0;

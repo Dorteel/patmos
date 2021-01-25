@@ -5,17 +5,9 @@
 #include <stdbool.h>
 #include <math.h>
 #include "../Flight_conteroller_v2.h"
-include "../gps/read_gps.h"
-// #include "../gyro/gyro.h"
-// #include "../barometer/baro.h"
-// #include "../compass/compass.h"
+#include "../gps/read_gps.h"
 #include "../basic_lib/actuator_receiver.h"
-// #include "../pid/pid.h"
-// #include "../safety/return_to_home.h"
-// #include "../safety/led_signal.h"
-// #include "../safety/start_stop_takeoff.h"
-// #include "../callibration/callibration.h"
-// #include "../basic_lib/analog_read.h"
+#include "../basic_lib/timer.h"
 
 
 int main(int argc, char **argv)

@@ -1,4 +1,4 @@
-MAIN?=test/gps_test
+MAIN?=test/motor_test
 #MAIN?=blinking
 MAIN?=test/imu_test
 SERIAL?=/dev/ttyUSB0
