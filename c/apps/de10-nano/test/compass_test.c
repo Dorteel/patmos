@@ -7,7 +7,7 @@
 #include <machine/patmos.h>
 #include <stdbool.h>
 #include <math.h>
-#include "i2c_master.h"
+#include "../basic_lib/i2c_master.h"
 
 // Default I2C address for the MPU-6050 is 0x68.
 #define MPU6050_I2C_ADDRESS 0x68
