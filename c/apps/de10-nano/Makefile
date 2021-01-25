@@ -3,7 +3,7 @@ MAIN?=test/baroTest
 # MAIN?=acts_props_uart2
 SERIAL?=/dev/ttyUSB0
 I2C?=../i2c-master/i2c_master
-BARO?=baro/baro
+BARO?=test/baro/baro
 # This is the trivial Hello World example, distributed over two .c files
 
 LDFLAGS?= \

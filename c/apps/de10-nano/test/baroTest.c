@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include "../../i2c-master/i2c_master.h"
-#include "../baro/baro.h"
+#include "baro/baro.h"
 
 
 int main(int argc, char **argv)
