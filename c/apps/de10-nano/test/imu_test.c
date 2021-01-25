@@ -2,10 +2,6 @@
 #include "../gps/read_gps.h"
 #include "../gyro/gyro.h"
 #include "../basic_lib/actuator_receiver.h"
-#include "../pid/pid.h"
-#include "../safety/return_to_home.h"
-#include "../safety/led_signal.h"
-#include "../safety/start_stop_takeoff.h"
 
 #define transmitter false
 
