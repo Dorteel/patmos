@@ -4,7 +4,7 @@
 #include <machine/patmos.h>
 #include <stdbool.h>
 #include <math.h>
-#include "../Flight_conteroller_v2.h"
+#include "../Flight_controller_v2.h"
 #include "../gps/read_gps.h"
 #include "../basic_lib/actuator_receiver.h"
 #include "../basic_lib/timer.h"

@@ -15,7 +15,7 @@
    LED_out(1);                                                             //The red led will indicate that the compass calibration is active.
    LED_out(0);                                                            //Turn off the green led as we don't need it.
    while (channel_2 < 1900) {                                                 //Stay in this loop until the pilot lowers the pitch stick of the transmitter.
-//     send_telemetry_data();                                                   //Send telemetry data to the ground station.
+    send_telemetry_data();                                                   //Send telemetry data to the ground station.
      micros(3700);                                                 //Simulate a 250Hz program loop.
      read_compass();                                                          //Read the raw compass values.
      //In the following lines the maximum and minimum compass values are detected and stored.
@@ -51,7 +51,7 @@ void callibrate_level(void) {
   level_calibration_on = 1;
 
   while (channel_2 < 1100) {
-    // send_telemetry_data();                                                   //Send telemetry data to the ground station.
+    send_telemetry_data();                                                   //Send telemetry data to the ground station.
     millis(10);
   }
   LED_out(1);
@@ -61,7 +61,7 @@ void callibrate_level(void) {
   acc_roll_cal_value = 0;
 
   for (error = 0; error < 64; error ++) {
-    // send_telemetry_data();                                                   //Send telemetry data to the ground station.
+    send_telemetry_data();                                                   //Send telemetry data to the ground station.
     gyro_signalen();
     acc_pitch_cal_value += acc_y;
     acc_roll_cal_value += acc_x;

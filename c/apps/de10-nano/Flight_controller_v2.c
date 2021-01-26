@@ -1,4 +1,5 @@
-#include "Flight_conteroller_v2.h"
+#include "Flight_controller_v2.h"
+#include "telemetry/send_telemetry_data.h"
 #include "gps/read_gps.h"
 #include "gyro/gyro.h"
 #include "barometer/baro.h"
@@ -350,6 +351,8 @@ int main(int argc, char **argv)
     actuator_write(m2, 1000);
     actuator_write(m3, 1000);
     actuator_write(m4, 1000);
+
+    send_telemetry_data();
     //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
     //Because of the angle calculation the loop time is getting very important. If the loop time is
     //longer or shorter than 4000us the angle calculation is off. If you modify the code make sure

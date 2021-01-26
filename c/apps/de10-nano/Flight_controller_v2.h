@@ -110,6 +110,7 @@ __uint8_t error, error_counter, error_led;
 __uint8_t flight_mode, flight_mode_counter, flight_mode_led;
 __uint8_t takeoff_detected, manual_altitude_change;
 __uint8_t telemetry_send_byte, telemetry_bit_counter, telemetry_loop_counter;
+char recUART[512]="";
 __uint8_t channel_select_counter;
 __uint8_t level_calibration_on;
 __uint32_t telemetry_buffer_byte;

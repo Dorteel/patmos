@@ -161,5 +161,7 @@ void barometer_setup()
         millis(4);                                                   //The main program loop also runs 250Hz (4ms per loop).
     }
     actual_pressure = 0;                                          //Reset the pressure calculations.
+}
+
 
 #endif //PATMOS_BARO_H

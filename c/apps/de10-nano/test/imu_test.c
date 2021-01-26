@@ -1,4 +1,4 @@
-#include "../Flight_conteroller_v2.h"
+#include "../Flight_controller_v2.h"
 #include "../gps/read_gps.h"
 #include "../gyro/gyro.h"
 #include "../basic_lib/actuator_receiver.h"
