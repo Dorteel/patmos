@@ -122,13 +122,14 @@ __int16_t temperature, count_var;
 __int16_t acc_x, acc_y, acc_z;
 __int16_t gyro_pitch, gyro_roll, gyro_yaw;
 
+int low[4]={1003,676,1000,999}, center[4]={1493,1503,1496,1331}, high[4]={2002,2000,1993,1994};///(th,roll,pitch,yaw)
 __int32_t channel_1_start, channel_1, channel_1_base, pid_roll_setpoint_base;
 __int32_t channel_2_start, channel_2, channel_2_base, pid_pitch_setpoint_base;
 __int32_t channel_3_start, channel_3;
 __int32_t channel_4_start, channel_4;
 __int32_t channel_5_start, channel_5;
 __int32_t channel_6_start, channel_6;
-__int32_t measured_time, measured_time_start, receiver_watchdog;
+__int32_t measured_time, measured_time_start, receiver_watchdog,receiver_input[6];
 __int32_t acc_total_vector, acc_total_vector_at_start;
 __int32_t gyro_roll_cal, gyro_pitch_cal, gyro_yaw_cal;
 __int16_t acc_pitch_cal_value;

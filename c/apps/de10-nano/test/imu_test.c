@@ -1,6 +1,7 @@
 #include "../Flight_controller_v2.h"
 #include "../gps/read_gps.h"
 #include "../gyro/gyro.h"
+#include "../telemetry/send_telemetry_data.h"
 #include "../basic_lib/actuator_receiver.h"
 
 #define transmitter false
@@ -25,14 +26,10 @@ int main(int argc, char **argv)
   {
     while(1){
 
-      if(transmitter)
-        intr_handler();
-      if(transmitter)
+      intr_handler();
+      if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
       {
-        if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
-        {
-          program_off = -1;
-        }
+        program_off = -1;
       }
       
       gyro_signalen();
@@ -99,8 +96,7 @@ int main(int argc, char **argv)
       while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
       loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
       
-      if(transmitter)
-        if(program_off==-1)break;                                                       //used to stop the code to reupload the program
+      if(program_off==-1)break;                                                       //used to stop the code to reupload the program
 
     }
   }
@@ -109,16 +105,6 @@ int main(int argc, char **argv)
     for (int i = 0; i < 1000; ++i)
     {
 
-      if(transmitter)
-        intr_handler();
-      if(transmitter)
-      {
-        if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
-        {
-          program_off = -1;
-        }
-      }
-      
       gyro_signalen();
 
       //65.5 = 1 deg/sec (check the datasheet of the MPU-6050 for more information).
@@ -183,9 +169,6 @@ int main(int argc, char **argv)
       while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
       loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
       
-      if(transmitter)
-        if(program_off==-1)break;                                                       //used to stop the code to reupload the program
-
     }
   }
   
