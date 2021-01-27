@@ -8,7 +8,6 @@
 #include "../basic_lib/timer.h"
 #include "../basic_lib/led.h"
 
-
 void read_compass() {
     compass_y = i2c_reg8_read16b(compass_address,0x03);                 //Add the low and high byte to the compass_y variable.
     compass_y *= -1;                                              //Invert the direction of the axis.
@@ -16,6 +15,7 @@ void read_compass() {
     compass_x = i2c_reg8_read16b(compass_address,0x07);                 //Add the low and high byte to the compass_x variable.;
     compass_x *= -1;                                              //Invert the direction of the axis.
 
+//    printf("compasss: %d, %d, %d ", compass_x,compass_y,compass_z);
     //Before the compass can give accurate measurements it needs to be calibrated. At startup the compass_offset and compass_scale
     //variables are calculated. The following part will adjust the raw compas values so they can be used for the calculation of the heading.
     if (compass_calibration_on == 0) {                            //When the compass is not beeing calibrated.
@@ -39,7 +39,7 @@ void read_compass() {
     actual_compass_heading += declination;                                 //Add the declination to the magnetic compass heading to get the geographic north.
     if (actual_compass_heading < 0) actual_compass_heading += 360;         //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
     else if (actual_compass_heading >= 360) actual_compass_heading -= 360; //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
-};
+}
 
 //At startup the registers of the compass need to be set. After that the calibration offset and scale values are calculated.
 void setup_compass() {
@@ -47,14 +47,14 @@ void setup_compass() {
     i2c_reg8_write8(compass_address,0x01,0x20);                                            //Set the Configuration Regiser B bits as 00100000 to set the gain at +/-1.3Ga.
     i2c_reg8_write8(compass_address,0x02,0x00);                                            //Set the Mode Regiser bits as 00000000 to set Continues-Measurement Mode.
 
-//Calculate the alibration offset and scale values
+//Calculate the calibration offset and scale values
     compass_scale_y = ((float)compass_cal_values[1] - compass_cal_values[0]) / (compass_cal_values[3] - compass_cal_values[2]);
     compass_scale_z = ((float)compass_cal_values[1] - compass_cal_values[0]) / (compass_cal_values[5] - compass_cal_values[4]);
 
     compass_offset_x = (compass_cal_values[1] - compass_cal_values[0]) / 2 - compass_cal_values[1];
     compass_offset_y = (((float)compass_cal_values[3] - compass_cal_values[2]) / 2 - compass_cal_values[3]) * compass_scale_y;
     compass_offset_z = (((float)compass_cal_values[5] - compass_cal_values[4]) / 2 - compass_cal_values[5]) * compass_scale_z;
-};
+}
 
 
 //The following subrouting calculates the smallest difference between two heading values.
@@ -68,8 +68,7 @@ float course_deviation(float course_b, float course_c) {
         course_a = actual_course_mirrored - base_course_mirrored;
     }
     return course_a;
-};
-
+}
 
 
 #endif //PATMOS_COMPASS_H

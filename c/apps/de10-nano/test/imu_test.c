@@ -1,15 +1,8 @@
-#include "../Flight_conteroller_v2.h"
+#include "../Flight_controller_v2.h"
 #include "../gps/read_gps.h"
 #include "../gyro/gyro.h"
-#include "../barometer/baro.h"
-#include "../compass/compass.h"
+#include "../telemetry/send_telemetry_data.h"
 #include "../basic_lib/actuator_receiver.h"
-#include "../pid/pid.h"
-#include "../safety/return_to_home.h"
-#include "../safety/led_signal.h"
-#include "../safety/start_stop_takeoff.h"
-#include "../callibration/callibration.h"
-#include "../basic_lib/analog_read.h"
 
 #define transmitter false
 
@@ -33,14 +26,10 @@ int main(int argc, char **argv)
   {
     while(1){
 
-      if(transmitter)
-        intr_handler();
-      if(transmitter)
+      intr_handler();
+      if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
       {
-        if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
-        {
-          program_off = -1;
-        }
+        program_off = -1;
       }
       
       gyro_signalen();
@@ -69,11 +58,6 @@ int main(int argc, char **argv)
       angle_pitch -= angle_roll * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the roll angle to the pitch angel.
       angle_roll += angle_pitch * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the pitch angle to the roll angel.
 
-       angle_yaw -= course_deviation(angle_yaw, actual_compass_heading) / 1200.0;       //Calculate the difference between the gyro and compass heading and make a small correction.
-      if (angle_yaw < 0) angle_yaw += 360;                                             //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
-      else if (angle_yaw >= 360) angle_yaw -= 360;                                     //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
-
-
       //Accelerometer angle calculations
       acc_total_vector = sqrt((acc_x*acc_x)+(acc_y*acc_y)+(acc_z*acc_z));        //Calculate the total accelerometer vector.
 
@@ -106,14 +90,13 @@ int main(int argc, char **argv)
       angle_pitch = angle_pitch * 0.98 + angle_pitch_acc * 0.02;                   //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
       angle_roll = angle_roll * 0.98 + angle_roll_acc * 0.02;                      //Correct the drift of the gyro roll angle with the accelerometer roll angle.
 
-      printf("pitch angle: %f  roll angle: %f \n",angle_pitch,angle_roll);
+      printf("pitch angle: %f  roll angle: %f yaw angle: %f \n",angle_pitch,angle_roll,angle_yaw);
 
       if (get_cpu_usecs() - loop_timer > 20050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
       while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
       loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
       
-      if(transmitter)
-        if(program_off==-1)break;                                                       //used to stop the code to reupload the program
+      if(program_off==-1)break;                                                       //used to stop the code to reupload the program
 
     }
   }
@@ -122,16 +105,6 @@ int main(int argc, char **argv)
     for (int i = 0; i < 1000; ++i)
     {
 
-      if(transmitter)
-        intr_handler();
-      if(transmitter)
-      {
-        if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
-        {
-          program_off = -1;
-        }
-      }
-      
       gyro_signalen();
 
       //65.5 = 1 deg/sec (check the datasheet of the MPU-6050 for more information).
@@ -158,11 +131,6 @@ int main(int argc, char **argv)
       angle_pitch -= angle_roll * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the roll angle to the pitch angel.
       angle_roll += angle_pitch * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the pitch angle to the roll angel.
 
-       angle_yaw -= course_deviation(angle_yaw, actual_compass_heading) / 1200.0;       //Calculate the difference between the gyro and compass heading and make a small correction.
-      if (angle_yaw < 0) angle_yaw += 360;                                             //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
-      else if (angle_yaw >= 360) angle_yaw -= 360;                                     //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
-
-
       //Accelerometer angle calculations
       acc_total_vector = sqrt((acc_x*acc_x)+(acc_y*acc_y)+(acc_z*acc_z));        //Calculate the total accelerometer vector.
 
@@ -195,15 +163,12 @@ int main(int argc, char **argv)
       angle_pitch = angle_pitch * 0.98 + angle_pitch_acc * 0.02;                   //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
       angle_roll = angle_roll * 0.98 + angle_roll_acc * 0.02;                      //Correct the drift of the gyro roll angle with the accelerometer roll angle.
 
-      printf("pitch angle: %f  roll angle: %f \n",angle_pitch,angle_roll);
+      printf("pitch angle: %f  roll angle: %f yaw angle: %f \n",angle_pitch,angle_roll,angle_yaw);
 
       if (get_cpu_usecs() - loop_timer > 20050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
       while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
       loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
       
-      if(transmitter)
-        if(program_off==-1)break;                                                       //used to stop the code to reupload the program
-
     }
   }
   

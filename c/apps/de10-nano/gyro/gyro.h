@@ -78,6 +78,7 @@ void gyro_signalen()
 
 }
 
+
 void callibrate_gyro()
 {
     cal_int = 0;                                                                        //Set the cal_int variable to zero.
