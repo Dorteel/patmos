@@ -21,7 +21,7 @@ int main(int argc, char **argv)
   while(1)
   {
     intr_handler();  
-    printf("channel1: %d, channel2: %d, channel3: %d, channel4: %d\n",channel_1,channel_2,channel_3,channel_4 );
+    printf("channel1: %d, channel2: %d, channel3: %d, channel4: %d,channel5: %d,channel6: %d\n",channel_1,channel_2,channel_3,channel_4,channel_5,channel_6 );
 
      //For starting the motors: throttle low and yaw left (step 1).
     if(channel_3 < 1050 && channel_4 < 1050)
