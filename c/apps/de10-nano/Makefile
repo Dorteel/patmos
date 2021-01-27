@@ -1,4 +1,4 @@
-MAIN?=test/receiver_test
+MAIN?=Flight_controller_v2
 #MAIN?=blinking
 MAIN?=test/imu_test
 SERIAL?=/dev/ttyUSB0

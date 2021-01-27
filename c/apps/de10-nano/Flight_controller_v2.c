@@ -363,7 +363,9 @@ int main(int argc, char **argv)
     if (get_cpu_usecs() - loop_timer > 20050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
     while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
     loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
-  
+  	printf("loop_timer: %d\n", loop_timer );   //607326091 - 609668094 = 2342003
+  	printf("flight_mode: %d  start: %d\n",flight_mode, start );
+	printf("esc1:%d esc2:%d esc3:%d esc4:%d\n",esc_1, esc_2, esc_3, esc_4 );
     if(program_off==-1)break;                                                       //used to stop the code to reupload the program
 
   }

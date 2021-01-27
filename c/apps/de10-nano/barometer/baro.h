@@ -148,6 +148,7 @@ void read_barometer(void)
 
 void barometer_setup()
 {
+    printf("baro setup\n");
     for (start = 1; start <= 6; start++) {
         C[start] = i2c_reg8_read16b(MS5611_ADDR,0xA0 + start * 2);                //Add the low and high byte to the C[x] calibration variable.
     }

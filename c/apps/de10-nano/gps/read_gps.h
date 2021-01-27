@@ -34,6 +34,7 @@ char cGSA[6] = "$GNGSA";
 
 void gps_setup(void)
 {
+    printf("gps setup\n");
     gps_init_tpv(&tpv);
 }
 
@@ -133,7 +134,7 @@ void read_gps(void) {
     if (tpv.longitude >0)longiude_east = 1;                                                //When flying east of the prime meridian the longiude_east variable will be set to 1.
     else longiude_east = 0;
 
-    if(tpv.mode == GPS_MODE_3D_FIX)
+    if(tpv.mode == 3)
         number_used_sats =8;                                             //Filter the number of satillites from the GGA line.
 
     if (lat_gps_previous == 0 && lon_gps_previous == 0) {                                              //If this is the first time the GPS code is used.
@@ -157,6 +158,7 @@ void read_gps(void) {
     lon_gps_add = 0;                                                                                   //Reset the lon_gps_add variable.
     new_gps_data_available = 1;                                                                        //Set the new_gps_data_available to indicate that there is new data available.
 
+    // printf("lat_gps_actual: %f  lon_gps_actual: %f\n",(double)tpv.latitude,(double)tpv.longitude );
     if (new_gps_data_available) {                                                                           //If there is a new set of GPS data available.
         if (number_used_sats < 8) printf("not enough satellite to lock on");                                                              //Turn the LED on the STM solid on (LED function is inverted). Check the STM32 schematic.
         gps_watchdog_timer = get_cpu_usecs();                                                                        //Reset the GPS watch dog tmer.

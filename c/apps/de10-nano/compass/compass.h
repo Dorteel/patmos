@@ -43,6 +43,7 @@ void read_compass() {
 
 //At startup the registers of the compass need to be set. After that the calibration offset and scale values are calculated.
 void setup_compass() {
+    printf("compass setup\n");
     i2c_reg8_write8(compass_address,0x00,0x78);                                            //Set the Configuration Regiser A bits as 01111000 to set sample rate (average of 8 at 75Hz).
     i2c_reg8_write8(compass_address,0x01,0x20);                                            //Set the Configuration Regiser B bits as 00100000 to set the gain at +/-1.3Ga.
     i2c_reg8_write8(compass_address,0x02,0x00);                                            //Set the Mode Regiser bits as 00000000 to set Continues-Measurement Mode.

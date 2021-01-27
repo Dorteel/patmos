@@ -37,6 +37,7 @@
 
 void gyro_setup()
 {
+    printf("gps setup\n");
     //Setup the MPU-6050 registers
     while(i2c_reg8_write8(MPU6050_I2C_ADDRESS, MPU6050_PWR_MGMT_1, 0x00));                    //Set the register bits as 00000000 to activate the gyro
     while(i2c_reg8_write8(MPU6050_I2C_ADDRESS, MPU6050_GYRO_CONFIG, 0x08));                   //Set the register bits as 00001000 (500dps full scale)
@@ -81,6 +82,7 @@ void gyro_signalen()
 
 void callibrate_gyro()
 {
+    printf("gyro callibration\n");
     cal_int = 0;                                                                        //Set the cal_int variable to zero.
     if (cal_int != 2000) {
         //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).

@@ -103,8 +103,8 @@ void intr_handler(void) {
     channel_2 = convert_receiver_channel(1);  //2(1)               //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
     channel_3 = convert_receiver_channel(2);  //0(0)               //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
     channel_4 = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
-    channel_5 = receiver_read(4);
-    channel_6 = receiver_read(5);
+    channel_5 = receiver_read(5);
+    channel_6 = receiver_read(4);
 
 
     // channel_1 = receiver_read(0);

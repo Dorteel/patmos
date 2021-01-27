@@ -11,6 +11,7 @@
 //In this part the level and compass calibration procedres are handled.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  void callibrate_compass(void) {
+  printf("compass callibration\n");
    compass_calibration_on = 1;                                                //Set the compass_calibration_on variable to disable the adjustment of the raw compass values.
    LED_out(1);                                                             //The red led will indicate that the compass calibration is active.
    LED_out(0);                                                            //Turn off the green led as we don't need it.
@@ -49,6 +50,7 @@
 
 
 void callibrate_level(void) {
+  printf("level callibration\n");
   level_calibration_on = 1;
 
   while (channel_2 < 1100) {
