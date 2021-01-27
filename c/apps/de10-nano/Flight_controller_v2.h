@@ -122,7 +122,7 @@ __int16_t temperature, count_var;
 __int16_t acc_x, acc_y, acc_z;
 __int16_t gyro_pitch, gyro_roll, gyro_yaw;
 
-int low[4]={1003,676,1000,999}, center[4]={1493,1503,1496,1331}, high[4]={2002,2000,1993,1994};///(th,roll,pitch,yaw)
+int low[4]={1003,1004,1000,999}, center[4]={1493,1503,1496,1331}, high[4]={2002,2000,1993,1994};///(th,roll,pitch,yaw)
 __int32_t channel_1_start, channel_1, channel_1_base, pid_roll_setpoint_base;
 __int32_t channel_2_start, channel_2, channel_2_base, pid_pitch_setpoint_base;
 __int32_t channel_3_start, channel_3;

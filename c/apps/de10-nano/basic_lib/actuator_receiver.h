@@ -105,6 +105,14 @@ void intr_handler(void) {
     channel_4 = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
     channel_5 = receiver_read(4);
     channel_6 = receiver_read(5);
+
+
+    // channel_1 = receiver_read(0);
+    // channel_2 = receiver_read(1);
+    // channel_3 = receiver_read(2);
+    // channel_4 = receiver_read(3);
+    // channel_5 = receiver_read(4);
+    // channel_6 = receiver_read(5);
 }
 
 
