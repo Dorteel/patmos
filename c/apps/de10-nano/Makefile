@@ -1,6 +1,7 @@
-# MAIN?=pthread_mutex_test
+MAIN?=Flight_controller_v2
+
 #MAIN?=blinking
-MAIN?=test/imu_test
+# MAIN?=test/imu_test
 SERIAL?=/dev/ttyUSB0
 I2C?=basic_lib/i2c_master
 BARO?=test/baro/baro

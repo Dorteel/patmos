@@ -48,34 +48,48 @@ void gyro_setup()
 
 void gyro_signalen()
 {
+    pthread_mutex_lock(&mutex);
+    pthread_mutex_unlock(&mutex);
+    __uint32_t timer = get_cpu_usecs();
+    while(!program_off){
+        asm volatile ("" : : : "memory");
+        #ifndef WITHOUT_MUTEX
+            pthread_mutex_lock(&mutex);
+        #endif
+            //Read the MPU-6050
+            acc_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H);
+            acc_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_YOUT_H);
+            acc_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_ZOUT_H);
+            temperature = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_TEMP_OUT_H);
+            gyro_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_XOUT_H);
+            gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
+            gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
 
-    //Read the MPU-6050
-    acc_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H);
-    acc_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_YOUT_H);
-    acc_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_ZOUT_H);
-    temperature = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_TEMP_OUT_H);
-    gyro_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_XOUT_H);
-    gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
-    gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
+            if(cal_int == 500)
+            {
+                gyro_axis[1] -= gyro_axis_cal[1];                                     //Only compensate after the calibration.
+                gyro_axis[2] -= gyro_axis_cal[2];                                     //Only compensate after the calibration.
+                gyro_axis[3] -= gyro_axis_cal[3];                                     //Only compensate after the calibration.
+            }
+            gyro_roll = gyro_axis[1];                                               //Set gyro_roll to the correct axis.
+            gyro_pitch = gyro_axis[2];                                              //Set gyro_pitch to the correct axis.
+            gyro_pitch *= -1;                                                       //Invert gyro_pitch to change the axis of sensor data.
+            gyro_yaw = gyro_axis[3];                                                //Set gyro_yaw to the correct axis.
+            gyro_yaw *= -1;                                                         //Invert gyro_yaw to change the axis of sensor data.
 
-    if(cal_int == 500)
-    {
-        gyro_axis[1] -= gyro_axis_cal[1];                                     //Only compensate after the calibration.
-        gyro_axis[2] -= gyro_axis_cal[2];                                     //Only compensate after the calibration.
-        gyro_axis[3] -= gyro_axis_cal[3];                                     //Only compensate after the calibration.
+
+            acc_x = acc_axis[2];                                                    //Set acc_x to the correct axis.
+            acc_x *= -1;                                                            //Invert acc_x.
+            acc_y = acc_axis[1];                                                    //Set acc_y to the correct axis.
+            acc_z = acc_axis[3];                                                    //Set acc_z to the correct axis.
+            acc_z *= -1;                                                            //Invert acc_z.
+        #ifndef WITHOUT_MUTEX
+            pthread_mutex_unlock(&mutex);
+        #endif
+        while (get_cpu_usecs() - timer < 4000);
+        printf("gyro-timer: %llu \n",get_cpu_usecs()-timer);
+        timer = get_cpu_usecs();
     }
-    gyro_roll = gyro_axis[1];                                               //Set gyro_roll to the correct axis.
-    gyro_pitch = gyro_axis[2];                                              //Set gyro_pitch to the correct axis.
-    gyro_pitch *= -1;                                                       //Invert gyro_pitch to change the axis of sensor data.
-    gyro_yaw = gyro_axis[3];                                                //Set gyro_yaw to the correct axis.
-    gyro_yaw *= -1;                                                         //Invert gyro_yaw to change the axis of sensor data.
-
-
-    acc_x = acc_axis[2];                                                    //Set acc_x to the correct axis.
-    acc_x *= -1;                                                            //Invert acc_x.
-    acc_y = acc_axis[1];                                                    //Set acc_y to the correct axis.
-    acc_z = acc_axis[3];                                                    //Set acc_z to the correct axis.
-    acc_z *= -1;                                                            //Invert acc_z.
 
 }
 
@@ -89,7 +103,32 @@ void callibrate_gyro()
         int timer = get_cpu_usecs();
         for (cal_int = 0; cal_int < 500 ; cal_int ++) {                                  //Take 2000 readings for calibration.
             if (cal_int % 125 == 0) LED_out(1);                     //Change the led status every 125 readings to indicate calibration.
-            gyro_signalen();                                                                //Read the gyro output.
+            acc_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H);
+            acc_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_YOUT_H);
+            acc_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_ZOUT_H);
+            temperature = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_TEMP_OUT_H);
+            gyro_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_XOUT_H);
+            gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
+            gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
+
+            if(cal_int == 500)
+            {
+                gyro_axis[1] -= gyro_axis_cal[1];                                     //Only compensate after the calibration.
+                gyro_axis[2] -= gyro_axis_cal[2];                                     //Only compensate after the calibration.
+                gyro_axis[3] -= gyro_axis_cal[3];                                     //Only compensate after the calibration.
+            }
+            gyro_roll = gyro_axis[1];                                               //Set gyro_roll to the correct axis.
+            gyro_pitch = gyro_axis[2];                                              //Set gyro_pitch to the correct axis.
+            gyro_pitch *= -1;                                                       //Invert gyro_pitch to change the axis of sensor data.
+            gyro_yaw = gyro_axis[3];                                                //Set gyro_yaw to the correct axis.
+            gyro_yaw *= -1;                                                         //Invert gyro_yaw to change the axis of sensor data.
+
+
+            acc_x = acc_axis[2];                                                    //Set acc_x to the correct axis.
+            acc_x *= -1;                                                            //Invert acc_x.
+            acc_y = acc_axis[1];                                                    //Set acc_y to the correct axis.
+            acc_z = acc_axis[3];                                                    //Set acc_z to the correct axis.
+            acc_z *= -1;                                                            //Invert acc_z.                                                                //Read the gyro output.
             gyro_roll_cal += gyro_roll;                                                     //Ad roll value to gyro_roll_cal.
             gyro_pitch_cal += gyro_pitch;                                                   //Ad pitch value to gyro_pitch_cal.
             gyro_yaw_cal += gyro_yaw;                                                       //Ad yaw value to gyro_yaw_cal.

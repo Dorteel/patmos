@@ -56,8 +56,13 @@
 
 int main(int argc, char **argv)
 {
+  int cpucnt = get_cpucnt();
+  printf("Started using %d threads\n",cpucnt);
+  
+  pthread_t *threads = malloc(sizeof(pthread_t) * cpucnt);
 
-  intr_handler();                                                //Setup the timers for the receiver inputs and ESC's output.
+
+  // intr_handler();                                                //Setup the timers for the receiver inputs and ESC's output.
   gps_setup();                                                  //Set the baud rate and output refreshrate of the GPS module.
   gyro_setup();                                                 //Initiallize the gyro and set the correct registers.
 
@@ -77,12 +82,52 @@ int main(int argc, char **argv)
   
   if(GYRO_CALLIB)callibrate_gyro();                                             //Calibrate the gyro offset.
 
+
+
+/////////////////multi core thread iniitate
+
+
+  // No thread starts before all are initialized;
+  pthread_mutex_lock(&mutex);
+  for(int i = 1; i < cpucnt;)
+  {
+    int retval = pthread_create(threads+i, NULL, intr_handler, NULL);
+    if(retval != 0)
+    {
+      printf("Unable to start thread %d, error code %d\n", i, retval);
+      return retval;
+    }
+    i++;
+    retval = pthread_create(threads+i, NULL, gyro_signalen, NULL);
+    if(retval != 0)
+    {
+      printf("Unable to start thread %d, error code %d\n", i, retval);
+      return retval;
+    }
+    i++;
+    retval = pthread_create(threads+i, NULL, read_barometer, NULL);
+    if(retval != 0)
+    {
+      printf("Unable to start thread %d, error code %d\n", i, retval);
+      return retval;
+    }
+    i++;
+  }
+  pthread_mutex_unlock(&mutex);
+
+////////////////////////////
+
+  printf("thread initaited\n");
+
+
   //Wait until the receiver is active.
   while (channel_1 < 990 || channel_2 < 990 || channel_3 < 990 || channel_4 < 990)  {
     error = 4;                                                  //Set the error status to 4.
     LED_out(1);                                             //Show the error via the red LED.
-    while (get_cpu_usecs() - loop_timer < dt*1000000);
-    timer = get_cpu_usecs();                                                   //Delay 4ms to simulate a 250Hz loop
+    // while (get_cpu_usecs() - loop_timer < dt*1000000);
+    // loop_timer = get_cpu_usecs();                                                   //Delay 4ms to simulate a 250Hz loop
+    printf("stuck\n");
+
   }
   error = 0;                                                    //Reset the error status to 0.
 
@@ -119,14 +164,14 @@ int main(int argc, char **argv)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Main program loop
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  for (int j=0;j<10;j++)
+  while(!program_off)
   { 
-    intr_handler();
+    // intr_handler();
 
         //Stopping the code: throttle low and yaw right, roll left and pitch down
     if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
     {
-      program_off = -1;
+      program_off = 1;
     }
 
     if(receiver_watchdog < 750)receiver_watchdog ++;
@@ -182,52 +227,52 @@ int main(int argc, char **argv)
     return_to_home();                                                                //Jump to the return to home step program.
     flight_mode_signal();                                                            //Show the flight_mode via the green LED.
     LED_out(1);                                                                  //Show the error via the red LED.
-    gyro_signalen();                                                                 //Read the gyro and accelerometer data.
-    read_barometer();                                                                //Read and calculate the barometer data.
+    // gyro_signalen();                                                                 //Read the gyro and accelerometer data.
+    // read_barometer();                                                                //Read and calculate the barometer data.
     read_compass();                                                                  //Read and calculate the compass data.
     if (gps_add_counter >= 0)gps_add_counter --;
 
     read_gps();
 
     //65.5 = 1 deg/sec (check the datasheet of the MPU-6050 for more information).
-	gyro_roll_input = (gyro_roll_input * 0.7) + (((float)gyro_roll / 65.5) * 0.3);   //Gyro pid input is deg/sec.
-	gyro_pitch_input = (gyro_pitch_input * 0.7) + (((float)gyro_pitch / 65.5) * 0.3);//Gyro pid input is deg/sec.
-	gyro_yaw_input = (gyro_yaw_input * 0.7) + (((float)gyro_yaw / 65.5) * 0.3);      //Gyro pid input is deg/sec.
+  gyro_roll_input = (gyro_roll_input * 0.7) + (((float)gyro_roll / 65.5) * 0.3);   //Gyro pid input is deg/sec.
+  gyro_pitch_input = (gyro_pitch_input * 0.7) + (((float)gyro_pitch / 65.5) * 0.3);//Gyro pid input is deg/sec.
+  gyro_yaw_input = (gyro_yaw_input * 0.7) + (((float)gyro_yaw / 65.5) * 0.3);      //Gyro pid input is deg/sec.
 
-	//Gyro angle calculations
-	//0.0000611 = 1 / (250Hz / 65.5)
-	angle_pitch += (gyro_pitch / 65.5)*dt;                                     //Calculate the traveled pitch angle and add this to the angle_pitch variable.
-	angle_roll += (gyro_roll / 65.5)*dt;                                       //Calculate the traveled roll angle and add this to the angle_roll variable.
-	angle_yaw +=  (gyro_yaw / 65.5)*dt;                                        //Calculate the traveled yaw angle and add this to the angle_yaw variable.
-	if (angle_yaw < 0) angle_yaw += 360;                                             //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
-	else if (angle_yaw >= 360) angle_yaw -= 360;                                     //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
+  //Gyro angle calculations
+  //0.0000611 = 1 / (250Hz / 65.5)
+  angle_pitch += (gyro_pitch / 65.5)*dt;                                     //Calculate the traveled pitch angle and add this to the angle_pitch variable.
+  angle_roll += (gyro_roll / 65.5)*dt;                                       //Calculate the traveled roll angle and add this to the angle_roll variable.
+  angle_yaw +=  (gyro_yaw / 65.5)*dt;                                        //Calculate the traveled yaw angle and add this to the angle_yaw variable.
+  if (angle_yaw < 0) angle_yaw += 360;                                             //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
+  else if (angle_yaw >= 360) angle_yaw -= 360;                                     //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
 
-	//0.000001066 = 0.0000611 * (3.142(PI) / 180degr) The Arduino sin function is in radians and not degrees.
-	angle_pitch -= angle_roll * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the roll angle to the pitch angel.
-	angle_roll += angle_pitch * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the pitch angle to the roll angel.
+  //0.000001066 = 0.0000611 * (3.142(PI) / 180degr) The Arduino sin function is in radians and not degrees.
+  angle_pitch -= angle_roll * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the roll angle to the pitch angel.
+  angle_roll += angle_pitch * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the pitch angle to the roll angel.
 
 
     angle_yaw -= course_deviation(angle_yaw, actual_compass_heading) / 1200.0;       //Calculate the difference between the gyro and compass heading and make a small correction.
     if (angle_yaw < 0) angle_yaw += 360;                                             //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
     else if (angle_yaw >= 360) angle_yaw -= 360;                                     //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
 
-	//Accelerometer angle calculations
-	acc_total_vector = sqrt((acc_x*acc_x)+(acc_y*acc_y)+(acc_z*acc_z));        //Calculate the total accelerometer vector.
+  //Accelerometer angle calculations
+  acc_total_vector = sqrt((acc_x*acc_x)+(acc_y*acc_y)+(acc_z*acc_z));        //Calculate the total accelerometer vector.
 
 
-	//57.296 = 1 / (3.142 / 180) The Arduino asin function is in radians
-	angle_pitch_acc = asin(acc_y/acc_total_vector)* 57.296;                  //Calculate the pitch angle.
-	angle_roll_acc = asin(acc_x/acc_total_vector)* -57.296;                  //Calculate the roll angle.
+  //57.296 = 1 / (3.142 / 180) The Arduino asin function is in radians
+  angle_pitch_acc = asin(acc_y/acc_total_vector)* 57.296;                  //Calculate the pitch angle.
+  angle_roll_acc = asin(acc_x/acc_total_vector)* -57.296;                  //Calculate the roll angle.
 
-	if(!first_angle){
-	angle_pitch = angle_pitch_acc;                                                 //Set the pitch angle to the accelerometer angle.
-	angle_roll = angle_roll_acc;                                                   //Set the roll angle to the accelerometer angle.
-	first_angle = true;
-	}
-	else{
-	angle_pitch = angle_pitch * 0.98 + angle_pitch_acc * 0.02;                 //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
-	angle_roll = angle_roll * 0.98 + angle_roll_acc * 0.02;                    //Correct the drift of the gyro roll angle with the accelerometer roll angle.
-	}
+  if(!first_angle){
+  angle_pitch = angle_pitch_acc;                                                 //Set the pitch angle to the accelerometer angle.
+  angle_roll = angle_roll_acc;                                                   //Set the roll angle to the accelerometer angle.
+  first_angle = true;
+  }
+  else{
+  angle_pitch = angle_pitch * 0.98 + angle_pitch_acc * 0.02;                 //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
+  angle_roll = angle_roll * 0.98 + angle_roll_acc * 0.02;                    //Correct the drift of the gyro roll angle with the accelerometer roll angle.
+  }
 
     pitch_level_adjust = angle_pitch;                                           //Calculate the pitch angle correction.
     roll_level_adjust = angle_roll;                                             //Calculate the roll angle correction.
@@ -340,14 +385,25 @@ int main(int argc, char **argv)
     //the Q&A page:
     //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
-    if (get_cpu_usecs() - loop_timer > 20050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
-    while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
+    if (get_cpu_usecs() - loop_timer > 4050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
+    while (get_cpu_usecs() - loop_timer < 4000);                                            //We wait until 4000us are passed.
     loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
-  	printf("loop_timer: %d\n", loop_timer );   //607326091 - 609668094 = 2342003
-  	printf("flight_mode: %d  start: %d\n",flight_mode, start );
-	printf("esc1:%d esc2:%d esc3:%d esc4:%d\n",esc_1, esc_2, esc_3, esc_4 );
-    if(program_off==-1)break;                                                       //used to stop the code to reupload the program
+    printf("main loop_timer: %d\n", loop_timer );   //607326091 - 609668094 = 2342003
+    printf("flight_mode: %d  start: %d\n",flight_mode, start );
+  printf("esc1:%d esc2:%d esc3:%d esc4:%d\n",esc_1, esc_2, esc_3, esc_4 );
 
   }
+  for(int i = 1; i < cpucnt; i++) {
+    void * dummy;
+    int retval = pthread_join(*(threads+i), &dummy);
+    if(retval != 0)
+    {
+      printf("Unable to join thread %d, error code %d\n", i, retval);
+      return retval;
+    }
+  }
+  
+  free(threads);
+
   return 0;
 }

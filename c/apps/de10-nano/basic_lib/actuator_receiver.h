@@ -93,26 +93,41 @@ int convert_receiver_channel(unsigned int function)
 // stores receiver values in an global array
 void intr_handler(void) {
     // read the receiver pwm duty cycle
+  pthread_mutex_lock(&mutex);
+  pthread_mutex_unlock(&mutex);
+  __uint32_t timer = get_cpu_usecs();
+  while(!program_off){
+    asm volatile ("" : : : "memory");
+    #ifndef WITHOUT_MUTEX
+      pthread_mutex_lock(&mutex);
+    #endif
+      receiver_input[0] = receiver_read(0);
+      receiver_input[1] = receiver_read(1);
+      receiver_input[2] = receiver_read(2);
+      receiver_input[3] = receiver_read(3);
 
-    receiver_input[0] = receiver_read(0);
-    receiver_input[1] = receiver_read(1);
-    receiver_input[2] = receiver_read(2);
-    receiver_input[3] = receiver_read(3);
-
-    channel_1 = convert_receiver_channel(0);  //1(0)               //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
-    channel_2 = convert_receiver_channel(1);  //2(1)               //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
-    channel_3 = convert_receiver_channel(2);  //0(0)               //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
-    channel_4 = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
-    channel_5 = receiver_read(5);
-    channel_6 = receiver_read(4);
+      channel_1 = convert_receiver_channel(0);  //1(0)               //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
+      channel_2 = convert_receiver_channel(1);  //2(1)               //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
+      channel_3 = convert_receiver_channel(2);  //0(0)               //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
+      channel_4 = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
+      channel_5 = receiver_read(5);
+      channel_6 = receiver_read(4);
 
 
-    // channel_1 = receiver_read(0);
-    // channel_2 = receiver_read(1);
-    // channel_3 = receiver_read(2);
-    // channel_4 = receiver_read(3);
-    // channel_5 = receiver_read(4);
-    // channel_6 = receiver_read(5);
+      // channel_1 = receiver_read(0);
+      // channel_2 = receiver_read(1);
+      // channel_3 = receiver_read(2);
+      // channel_4 = receiver_read(3);
+      // channel_5 = receiver_read(4);
+      // channel_6 = receiver_read(5);
+    #ifndef WITHOUT_MUTEX
+      pthread_mutex_unlock(&mutex);
+    #endif
+    while (get_cpu_usecs() - timer < 4000);
+    printf("receiver-timer: %llu \n",get_cpu_usecs()-timer);
+    timer = get_cpu_usecs();
+  }
+    
 }
 
 

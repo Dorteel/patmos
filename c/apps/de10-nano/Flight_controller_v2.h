@@ -6,6 +6,7 @@
 #define PATMOS_FLIGHT_CONTEROLLER_V2_H
 
 //standard header files
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <machine/patmos.h>
@@ -15,8 +16,10 @@
 #include <machine/rtc.h>
 
 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-float dt =0.04; /// loop timer in secs
+
+float dt =0.004; /// loop timer in secs
 #define battery_voltage_available 0// battery_voltage input from the fpga to compensate the esc input for change in battery volatge(will be later provided by DTU)
 #define GYRO_CALLIB 1 //set to 1 to swtich on gyro callibration before flight
 //channel 1- roll
@@ -102,7 +105,7 @@ float low_battery_warning = 10.5;          //Set the battery warning at 10.5V (d
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //int16_t = signed 16 bit integer
 //uint16_t = unsigned 16 bit integer
-int program_off=1;
+int program_off=0;
 __uint8_t last_channel_1, last_channel_2, last_channel_3, last_channel_4;
 __uint8_t check_byte, flip32, start;
 __uint8_t error, error_counter, error_led;
