@@ -102,7 +102,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 2000; ++i)
     {
 
       gyro_signalen();

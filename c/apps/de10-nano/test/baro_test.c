@@ -84,10 +84,10 @@ void check_barometer(void) {
         SENS_C1 = C[1] * pow(2, 15);                                  //This value is pre-calculated to offload the main program loop.
 
         start = 0;
-
+    unsigned timediff = 0;
     while(1){                                           //Stay in this loop until the data variable data holds a q.
+        unsigned int start = (get_cpu_usecs());
         loop_timer = get_cpu_usecs() + 20000;                                 //Set the loop_timer variable to the current micros() value + 4000.
-
         barometer_counter ++;                                         //Increment the barometer_counter variable for the next step.
 
         if (barometer_counter == 1) {
@@ -112,6 +112,7 @@ void check_barometer(void) {
             }
         }
         if (barometer_counter == 2) {
+
             //Calculate pressure as explained in the datasheet of the MS-5611.
             dT = C[5];
             dT <<= 8;
@@ -141,15 +142,17 @@ void check_barometer(void) {
                 start++;
                 actual_pressure = 0;
             }
-            else printf("Pressure : %f \n", actual_pressure);
+            //else printf("Pressure : %f \n", actual_pressure);
         }
         if (barometer_counter == 3) {
             barometer_counter = 0;
         }
         loop_counter++;
-        if(loop_counter>10000)
+        if(loop_counter>1000)
             break;
         while (loop_timer > get_cpu_usecs());
+    unsigned now = (get_cpu_usecs());
+    printf("Runtime: %d\n",(now-start) );
     }
     loop_counter = 0;                                                                     //Reset the loop counter variable to 0.
     start = 0;

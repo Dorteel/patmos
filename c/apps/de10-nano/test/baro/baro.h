@@ -20,11 +20,12 @@
 #define CMD_ADC_D1      0x48     // Pressure - 4096 resolution
 #define CMD_ADC_D2      0x58     // Temperature - 4096 resolution
 
+#define Q7_8_NUMBER(X) (short)((X)*(256))
+
 //
 // ***********************************************
 // ************** V A R I A B L E S **************
 //
-char testing;
 unsigned long offi;
 unsigned long sensi;
 unsigned long Ti;

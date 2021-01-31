@@ -103,15 +103,17 @@ int main()
     callibrate_compass();
     callibrate_level();
     gyro_setup();
-    printf("imu setup done");
+    printf("imu setup done\n");
     setup_compass();                                              //Initiallize the compass and set the correct registers.
-    printf("compass setup done");
+    printf("compass setup done\n");
     read_compass();                                               //Read and calculate the compass data.
     angle_yaw = actual_compass_heading;                           //Set the initial compass heading.//
-    printf("hello compass and imu");
+    printf("hello compass and imu\n");
     loop_timer = get_cpu_usecs();
-    while(1)
+    unsigned loop = 0;
+    while(loop <= 1000)
     {
+        loop++;
         gyro_signalen();
         read_compass();
 
@@ -180,7 +182,7 @@ int main()
         pitch_level_adjust = angle_pitch;                                           //Calculate the pitch angle correction.
         roll_level_adjust = angle_roll;                                             //Calculate the roll angle correction.
 
-        printf("pitch:: %f  roll: %f yaw : %f actual_compass_heading: %f \n",angle_pitch,angle_roll,angle_yaw,actual_compass_heading);
+        printf("pitch:: %f \troll: %f\tyaw : %f\tactual_compass_heading: %f\n",angle_pitch,angle_roll,angle_yaw,actual_compass_heading);
 
         while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
         loop_timer = get_cpu_usecs();

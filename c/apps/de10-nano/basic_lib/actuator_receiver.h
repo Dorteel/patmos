@@ -26,7 +26,6 @@ const unsigned int CPU_PERIOD = 20; //CPU period in ns.
 //Receiver controller register
 #define RECEIVER ( ( volatile _IODEV unsigned * ) PATMOS_IO_ACT )
 
-
 //writes pwm signlas of width=data to the esc
 void actuator_write(unsigned int actuator_id, unsigned int data)
 {
@@ -45,49 +44,31 @@ int receiver_read(unsigned int receiver_id){
 //This part converts the actual receiver signals to a standardized 1000 – 1500 – 2000 microsecond value.
 int convert_receiver_channel(unsigned int function)
 {
-  unsigned int  channel, reverse;       //First we declare some local variables
+  unsigned int  channel;       //First we declare some local variables
+  int reverse = 1;						//Reverse = -1 when the transmitter channels are reversed, else 1
   int actual;                           ///(0,th,roll,pitch,yaw)
   int difference;
 
-  if(function==0)
-  {
-    reverse = 0;                        //Reverse =1 when the transmitter channels are reversed, else 0
-    channel =1;//roll
+  if (function == 0) channel = 1;//roll
+  else if (function == 1){
+    reverse = -1;
+    channel = 2;//pitch
   }
-  else if(function==1)
-  {
-    reverse = 1;
-    channel=2;//pitch
-  }
-  else if(function==2)
-  {
-    reverse = 0;
-    channel=0;//throttle
-  }
-  else
-  {
-    reverse = 0;                                            
-    channel =3;//yaw
-  }
+  else if (function == 2) channel = 0;//throttle
+  else channel = 3;//yaw
 
   actual = receiver_input[channel];      //Read the actual receiver value for the corresponding function
-  // low = 1000;  //Store the low value for the specific receiver input channel
-  // center = 1500; //Store the center value for the specific receiver input channel
-  // high = 2000;   //Store the high value for the specific receiver input channel
 
-  if(actual < center[channel]){                                                         //The actual receiver value is lower than the center value
-    if(actual < low[channel])actual = low[channel];                                              //Limit the lowest value to the value that was detected during setup
-    difference = ((long)(center[channel] - actual) * (long)500) / (center[channel] - low[channel]);       //Calculate and scale the actual value to a 1000 - 2000us value
-    if(reverse == 1)return 1500 + difference;                                  //If the channel is reversed
-    else return 1500 - difference;                                             //If the channel is not reversed
+  if (actual <= center[channel]){                                                         //The actual receiver value is lower than the center value
+    if (actual < low[channel]) actual = low[channel];                                              //Limit the lowest value to the value that was detected during setup
+    difference = ((long)(center[channel] - actual) * (long)500) / (center[channel] - low[channel]);       //Calculate and scale the actual value to a 1000 - 2000us value                              //If the channel is reversed
+    return 1500 - reverse * difference;                                             //If the channel is not reversed
   }
-  else if(actual > center[channel]){                                                                        //The actual receiver value is higher than the center value
-    if(actual > high[channel])actual = high[channel];                                            //Limit the lowest value to the value that was detected during setup
-    difference = ((long)(actual - center[channel]) * (long)500) / (high[channel] - center[channel]);      //Calculate and scale the actual value to a 1000 - 2000us value
-    if(reverse == 1)return 1500 - difference;                                  //If the channel is reversed
-    else return 1500 + difference;                                             //If the channel is not reversed
+  else{                                                                        //The actual receiver value is higher than the center value
+    if (actual > high[channel])actual = high[channel];                                            //Limit the lowest value to the value that was detected during setup
+    difference = ((long)(actual - center[channel]) * (long)500) / (high[channel] - center[channel]);      //Calculate and scale the actual value to a 1000 - 2000us value                            //If the channel is reversed
+    return 1500 + reverse * difference;                                             
   }
-  else return 1500;
 }
 
 // stores receiver values in an global array
