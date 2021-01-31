@@ -18,7 +18,7 @@
    while (channel_2 < 1900) {                                                 //Stay in this loop until the pilot lowers the pitch stick of the transmitter.
     intr_handler();
     send_telemetry_data();                                                   //Send telemetry data to the ground station.
-     micros(3700);                                                 //Simulate a 250Hz program loop.
+     // micros(3700);                                                 //Simulate a 250Hz program loop.
      read_compass();                                                          //Read the raw compass values.
      //In the following lines the maximum and minimum compass values are detected and stored.
      if (compass_x < compass_cal_values[0])compass_cal_values[0] = compass_x;
@@ -71,7 +71,7 @@ void callibrate_level(void) {
     acc_roll_cal_value += acc_x;
     if (acc_y > 500 || acc_y < -500)error = 80;
     if (acc_x > 500 || acc_x < -500)error = 80;
-    micros(3700);
+    // micros(3700);
   }
 
   acc_pitch_cal_value /= 64;

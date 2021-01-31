@@ -18,7 +18,7 @@ void callibrate_compass(void) {
     LED_out(1);                                                             //The red led will indicate that the compass calibration is active.
     LED_out(0);                                                            //Turn off the green led as we don't need it.
                                              //Send telemetry data to the ground station.
-    micros(3700);                                                 //Simulate a 250Hz program loop.
+    // micros(3700);                                                 //Simulate a 250Hz program loop.
     read_compass();                                                          //Read the raw compass values.
     //In the following lines the maximum and minimum compass values are detected and stored.
     if (compass_x < compass_cal_values[0])compass_cal_values[0] = compass_x;
@@ -57,6 +57,7 @@ void callibrate_level(void) {
     acc_pitch_cal_value = 0;
     acc_roll_cal_value = 0;
 
+    int timer = get_cpu_usecs();
     for (error = 0; error < 64; error ++) {
         // send_telemetry_data();                                                   //Send telemetry data to the ground station.
         gyro_signalen();
@@ -64,7 +65,6 @@ void callibrate_level(void) {
         acc_roll_cal_value += acc_x;
         if (acc_y > 500 || acc_y < -500)error = 80;
         if (acc_x > 500 || acc_x < -500)error = 80;
-        micros(3700);
     }
 
     acc_pitch_cal_value /= 64;
@@ -102,6 +102,7 @@ int main()
 {
     callibrate_compass();
     callibrate_level();
+    callibrate_gyro();
     gyro_setup();
     printf("imu setup done");
     setup_compass();                                              //Initiallize the compass and set the correct registers.
@@ -110,79 +111,56 @@ int main()
     angle_yaw = actual_compass_heading;                           //Set the initial compass heading.//
     printf("hello compass and imu");
     loop_timer = get_cpu_usecs();
-    while(1)
+    for (int i = 0; i < 1000; ++i)
     {
         gyro_signalen();
         read_compass();
 
 
 
-        gyro_roll_input = (gyro_roll_input * 0.7) + (((float)gyro_roll / 65.5) * 0.3);   //Gyro pid input is deg/sec.
-        gyro_pitch_input = (gyro_pitch_input * 0.7) + (((float)gyro_pitch / 65.5) * 0.3);//Gyro pid input is deg/sec.
-        gyro_yaw_input = (gyro_yaw_input * 0.7) + (((float)gyro_yaw / 65.5) * 0.3);      //Gyro pid input is deg/sec.
+        //65.5 = 1 deg/sec (check the datasheet of the MPU-6050 for more information).
+      gyro_roll_input = (gyro_roll_input * 0.7) + (((float)gyro_roll / 65.5) * 0.3);   //Gyro pid input is deg/sec.
+      gyro_pitch_input = (gyro_pitch_input * 0.7) + (((float)gyro_pitch / 65.5) * 0.3);//Gyro pid input is deg/sec.
+      gyro_yaw_input = (gyro_yaw_input * 0.7) + (((float)gyro_yaw / 65.5) * 0.3);      //Gyro pid input is deg/sec.
 
+      //Gyro angle calculations
+      //0.0000611 = 1 / (250Hz / 65.5)
+      angle_pitch += (gyro_pitch / 65.5)*dt;                                     //Calculate the traveled pitch angle and add this to the angle_pitch variable.
+      angle_roll += (gyro_roll / 65.5)*dt;                                       //Calculate the traveled roll angle and add this to the angle_roll variable.
+      angle_yaw +=  (gyro_yaw / 65.5)*dt;                                        //Calculate the traveled yaw angle and add this to the angle_yaw variable.
+      if (angle_yaw < 0) angle_yaw += 360;                                             //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
+      else if (angle_yaw >= 360) angle_yaw -= 360;                                     //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        //This is the added IMU code from the videos:
-        //https://youtu.be/4BoIE8YQwM8
-        //https://youtu.be/j-kE0AMEWy4
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        //Gyro angle calculations
-        //0.0000611 = 1 / (250Hz / 65.5)
-        angle_pitch += (gyro_pitch / 65.5)*dt;                                     //Calculate the traveled pitch angle and add this to the angle_pitch variable.
-        angle_roll += (gyro_roll / 65.5)*dt;                                       //Calculate the traveled roll angle and add this to the angle_roll variable.
-        angle_yaw +=  (gyro_yaw / 65.5)*dt;                                        //Calculate the traveled yaw angle and add this to the angle_yaw variable.
-        if (angle_yaw < 0) angle_yaw += 360;                                             //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
-        else if (angle_yaw >= 360) angle_yaw -= 360;                                     //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
-
-        //0.000001066 = 0.0000611 * (3.142(PI) / 180degr) The Arduino sin function is in radians and not degrees.
-        angle_pitch -= angle_roll * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the roll angle to the pitch angel.
-        angle_roll += angle_pitch * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the pitch angle to the roll angel.
+      //0.000001066 = 0.0000611 * (3.142(PI) / 180degr) The Arduino sin function is in radians and not degrees.
+      angle_pitch -= angle_roll * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the roll angle to the pitch angel.
+      angle_roll += angle_pitch * sin(gyro_yaw * (dt/65.5)*(3.142/180));         //If the IMU has yawed transfer the pitch angle to the roll angel.
 
         angle_yaw -= course_deviation(angle_yaw, actual_compass_heading) / 1200.0;       //Calculate the difference between the gyro and compass heading and make a small correction.
         if (angle_yaw < 0) angle_yaw += 360;                                             //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
         else if (angle_yaw >= 360) angle_yaw -= 360;                                     //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
 
+      //Accelerometer angle calculations
+      acc_total_vector = sqrt((acc_x*acc_x)+(acc_y*acc_y)+(acc_z*acc_z));        //Calculate the total accelerometer vector.
 
-        //Accelerometer angle calculations
-        acc_total_vector = sqrt((acc_x*acc_x)+(acc_y*acc_y)+(acc_z*acc_z));        //Calculate the total accelerometer vector.
 
-
-        //57.296 = 1 / (3.142 / 180) The Arduino asin function is in radians
-        if(abs(acc_y) < acc_total_vector){                                         //Prevent the asin function to produce a NaN
-            angle_pitch_acc = asin(acc_y/acc_total_vector)* 57.296;                  //Calculate the pitch angle.
-        }
-        if(abs(acc_x) < acc_total_vector){                                         //Prevent the asin function to produce a NaN
-            angle_roll_acc = asin(acc_x/acc_total_vector)* -57.296;                  //Calculate the roll angle.
-        }
-
-        if(first_time)
-        {
-            pitch_offset = -angle_pitch_acc;                                         //start the pitch angle from 0 without any offsets
-            roll_offset = -angle_roll_acc;                                           //start the roll angle from 0 without any offsets
-        }
-
-        angle_pitch_acc += pitch_offset;                                           //Accelerometer calibration value for pitch.
-        angle_roll_acc += roll_offset;                                             //Accelerometer calibration value for roll.
-
-        if( (int)angle_pitch_acc==0 && (int)angle_roll_acc==0)
-        {
-            acc_count++;
-        }
-        else acc_count=0;
-
-        if(acc_count==20)first_time=0;
-
-        angle_pitch = angle_pitch * 0.98 + angle_pitch_acc * 0.02;                   //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
-        angle_roll = angle_roll * 0.98 + angle_roll_acc * 0.02;                      //Correct the drift of the gyro roll angle with the accelerometer roll angle.
-
+      //57.296 = 1 / (3.142 / 180) The Arduino asin function is in radians
+        angle_pitch_acc = asin(acc_y/acc_total_vector)* 57.296;                  //Calculate the pitch angle.
+        angle_roll_acc = asin(acc_x/acc_total_vector)* -57.296;                  //Calculate the roll angle.
+   
+        if(!first_angle){
+        angle_pitch = angle_pitch_acc;                                                 //Set the pitch angle to the accelerometer angle.
+        angle_roll = angle_roll_acc;                                                   //Set the roll angle to the accelerometer angle.
+        first_angle = true;
+      }
+      else{
+        angle_pitch = angle_pitch * 0.98 + angle_pitch_acc * 0.02;                 //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
+        angle_roll = angle_roll * 0.98 + angle_roll_acc * 0.02;                    //Correct the drift of the gyro roll angle with the accelerometer roll angle.
+      }
         pitch_level_adjust = angle_pitch;                                           //Calculate the pitch angle correction.
         roll_level_adjust = angle_roll;                                             //Calculate the roll angle correction.
 
         printf("pitch:: %f  roll: %f yaw : %f actual_compass_heading: %f \n",angle_pitch,angle_roll,angle_yaw,actual_compass_heading);
-
-        while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
+        while (get_cpu_usecs() - loop_timer < dt*1000000);                                            //We wait until 4000us are passed.
         loop_timer = get_cpu_usecs();
 
 

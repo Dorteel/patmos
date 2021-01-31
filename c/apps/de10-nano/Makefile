@@ -1,4 +1,4 @@
-MAIN?=Flight_controller_v2
+# MAIN?=pthread_mutex_test
 #MAIN?=blinking
 MAIN?=test/imu_test
 SERIAL?=/dev/ttyUSB0

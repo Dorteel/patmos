@@ -37,7 +37,7 @@
 
 void gyro_setup()
 {
-    printf("gps setup\n");
+    printf("gyro setup\n");
     //Setup the MPU-6050 registers
     while(i2c_reg8_write8(MPU6050_I2C_ADDRESS, MPU6050_PWR_MGMT_1, 0x00));                    //Set the register bits as 00000000 to activate the gyro
     while(i2c_reg8_write8(MPU6050_I2C_ADDRESS, MPU6050_GYRO_CONFIG, 0x08));                   //Set the register bits as 00001000 (500dps full scale)
@@ -58,7 +58,7 @@ void gyro_signalen()
     gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
     gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
 
-    if(cal_int == 2000)
+    if(cal_int == 500)
     {
         gyro_axis[1] -= gyro_axis_cal[1];                                     //Only compensate after the calibration.
         gyro_axis[2] -= gyro_axis_cal[2];                                     //Only compensate after the calibration.
@@ -84,20 +84,23 @@ void callibrate_gyro()
 {
     printf("gyro callibration\n");
     cal_int = 0;                                                                        //Set the cal_int variable to zero.
-    if (cal_int != 2000) {
+    if (cal_int != 500) {
         //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).
-        for (cal_int = 0; cal_int < 2000 ; cal_int ++) {                                  //Take 2000 readings for calibration.
-            if (cal_int % 15 == 0) LED_out(1);                     //Change the led status every 125 readings to indicate calibration.
+        int timer = get_cpu_usecs();
+        for (cal_int = 0; cal_int < 500 ; cal_int ++) {                                  //Take 2000 readings for calibration.
+            if (cal_int % 125 == 0) LED_out(1);                     //Change the led status every 125 readings to indicate calibration.
             gyro_signalen();                                                                //Read the gyro output.
             gyro_roll_cal += gyro_roll;                                                     //Ad roll value to gyro_roll_cal.
             gyro_pitch_cal += gyro_pitch;                                                   //Ad pitch value to gyro_pitch_cal.
             gyro_yaw_cal += gyro_yaw;                                                       //Ad yaw value to gyro_yaw_cal.
             LED_out(0);                                                                       //Small delay to simulate a 250Hz loop during calibration.
+            while (get_cpu_usecs() - timer < dt*1000000);
+            timer = get_cpu_usecs();
         }
         //Now that we have 2000 measures, we need to devide by 2000 to get the average gyro offset.
-        gyro_roll_cal /= 2000;                                                            //Divide the roll total by 2000.
-        gyro_pitch_cal /= 2000;                                                           //Divide the pitch total by 2000.
-        gyro_yaw_cal /= 2000;                                                             //Divide the yaw total by 2000.
+        gyro_roll_cal /= 500;                                                            //Divide the roll total by 2000.
+        gyro_pitch_cal /= 500;                                                           //Divide the pitch total by 2000.
+        gyro_yaw_cal /= 500;                                                             //Divide the yaw total by 2000.
     }
     printf("gyro callibration done\n");
 
