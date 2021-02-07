@@ -1,4 +1,4 @@
-MAIN?=Flight_controller_v2
+MAIN?=fresh_receiver
 
 #MAIN?=blinking
 # MAIN?=test/imu_test
