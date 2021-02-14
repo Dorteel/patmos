@@ -83,7 +83,8 @@ void gyro_signalen()
 void callibrate_gyro()
 {
     printf("gyro callibration\n");
-    cal_int = 0;                                                                        //Set the cal_int variable to zero.
+    cal_int = 0;
+    int timer = get_cpu_usecs();                                                                        //Set the cal_int variable to zero.
     if (cal_int != 500) {
         //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).
         for (cal_int = 0; cal_int < 2000 ; cal_int ++) {                                  //Take 2000 readings for calibration.
@@ -93,7 +94,7 @@ void callibrate_gyro()
             gyro_pitch_cal += gyro_pitch;                                                   //Ad pitch value to gyro_pitch_cal.
             gyro_yaw_cal += gyro_yaw;                                                       //Ad yaw value to gyro_yaw_cal.
             LED_out(0);                                                                       //Small delay to simulate a 250Hz loop during calibration.
-            while (get_cpu_usecs() - timer < dt*1000000);
+            while (get_cpu_usecs() - timer < dt*100000);
             timer = get_cpu_usecs();
         }
         //Now that we have 2000 measures, we need to devide by 2000 to get the average gyro offset.
