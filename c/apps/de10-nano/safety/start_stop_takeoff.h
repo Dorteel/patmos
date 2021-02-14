@@ -11,9 +11,11 @@
 //In this part the starting, stopping and take-off detection is managed.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void start_stop_takeoff(void) {
+    pthread_mutex_lock(&mutex);
+    pthread_mutex_unlock(&mutex);
     if (channel_3 < 1050 && channel_4 < 1050)start = 1;                              //For starting the motors: throttle low and yaw left (step 1).
     if (start == 1 && channel_3 < 1050 && channel_4 > 1450) {                        //When yaw stick is back in the center position start the motors (step 2).
-        printf("motors start\n");
+        if(PRINT_COMMANDS)printf("motors start\n");
         throttle = motor_idle_speed;                                                   //Set the base throttle to the motor_idle_speed variable.
         angle_pitch = angle_pitch_acc;                                                 //Set the gyro pitch angle equal to the accelerometer pitch angle when the quadcopter is started.
         angle_roll = angle_roll_acc;                                                   //Set the gyro roll angle equal to the accelerometer roll angle when the quadcopter is started.
@@ -29,7 +31,7 @@ void start_stop_takeoff(void) {
         start = 2;                                                                     //Set the start variable to 2 to indicate that the quadcopter is started.
         acc_alt_integrated = 0;                                                        //Reset the integrated acceleration value.
         if (manual_takeoff_throttle > 1400 && manual_takeoff_throttle < 1600) {        //If the manual hover throttle is used and valid (between 1400us and 1600us pulse).
-            printf("flying\n");
+            if(PRINT_COMMANDS)printf("flying\n");
             takeoff_throttle = manual_takeoff_throttle - 1500;                           //Use the manual hover throttle.
             takeoff_detected = 1;                                                        //Set the auto take-off detection to 1, indicated that the quadcopter is flying.
             //Reset the PID controllers for a smooth take-off.
@@ -51,13 +53,13 @@ void start_stop_takeoff(void) {
     }
     //Stopping the motors: throttle low and yaw right.
     if (start == 2 && channel_3 < 1050 && channel_4 > 1950) {
-        printf("motors stop\n");
+        if(PRINT_COMMANDS)printf("motors stop\n");
         start = 0;                                                                     //Set the start variable to 0 to disable the motors.
         takeoff_detected = 0;                                                          //Reset the auto take-off detection.
     }
 
     if (takeoff_detected == 0 && start == 2) {                                       //When the quadcopter is started and no take-off is detected.
-        printf("no take-off detected\n");
+        if(PRINT_COMMANDS)printf("no take-off detected\n");
         if (channel_3 > 1480 && throttle < 1750) throttle++;                           //When the throttle is half way or higher, increase the throttle.
         if (throttle == 1750)error = 6;                                                //If take-off is not detected when the throttle has reached 1700: error = 6.
         if (channel_3 <= 1480) {                                                       //When the throttle is below the center stick position.

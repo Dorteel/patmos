@@ -34,7 +34,7 @@ char cGSA[6] = "$GNGSA";
 
 void gps_setup(void)
 {
-    printf("gps setup\n");
+    if(PRINT_COMMANDS)printf("gps setup\n");
     gps_init_tpv(&tpv);
 }
 
@@ -53,16 +53,16 @@ void read_gps(void) {
     bool equal_VTG = false;
 
 
-    millis(250);
+    // millis(250);
 
     while (loop_counter < 500) {                                                           //Stay in this loop until the data variable data holds a q.
         if (loop_counter < 500)loop_counter++;
-        millis(4);                                                              //Wait for 4000us to simulate a 250Hz loop.
+        // millis(4);                                                              //Wait for 4000us to simulate a 250Hz loop.
         if (loop_counter == 1) {
-            printf("\n");
-            printf("====================================================================\n");
-            printf("Checking gps data @ 9600bps\n");
-            printf("====================================================================\n");
+            if(PRINT_COMMANDS)printf("\n");
+            if(PRINT_COMMANDS)printf("====================================================================\n");
+            if(PRINT_COMMANDS)printf("Checking gps data @ 9600bps\n");
+            if(PRINT_COMMANDS)printf("====================================================================\n");
         }
         //if (loop_counter > 1 && loop_counter < 500){
         if (loop_counter >= 1 && loop_counter < 500) {
@@ -160,14 +160,16 @@ void read_gps(void) {
 
     // printf("lat_gps_actual: %f  lon_gps_actual: %f\n",(double)tpv.latitude,(double)tpv.longitude );
     if (new_gps_data_available) {                                                                           //If there is a new set of GPS data available.
-        if (number_used_sats < 8) printf("not enough satellite to lock on");                                                              //Turn the LED on the STM solid on (LED function is inverted). Check the STM32 schematic.
+        if (number_used_sats < 8){if(PRINT_COMMANDS)printf("not enough satellite to lock on");}                                                              //Turn the LED on the STM solid on (LED function is inverted). Check the STM32 schematic.
         gps_watchdog_timer = get_cpu_usecs();                                                                        //Reset the GPS watch dog tmer.
         new_gps_data_available = 0;                                                                           //Reset the new_gps_data_available variable.
 
         if (flight_mode >= 3 && waypoint_set == 0) {                                                          //If the flight mode is 3 (GPS hold) and no waypoints are set.
+            pthread_mutex_lock(&mutex);
             waypoint_set = 1;                                                                                   //Indicate that the waypoints are set.
             l_lat_waypoint = l_lat_gps;                                                                         //Remember the current latitude as GPS hold waypoint.
             l_lon_waypoint = l_lon_gps;                                                                         //Remember the current longitude as GPS hold waypoint.
+            pthread_mutex_unlock(&mutex);
         }
 
         if (flight_mode >= 3 && waypoint_set == 1) {                                                          //If the GPS hold mode and the waypoints are stored.
@@ -233,6 +235,7 @@ void read_gps(void) {
             if (!longiude_east)gps_roll_adjust_north *= -1;                                                     //Invert the roll adjustmet because the quadcopter is flying west of the prime meridian.
 
             //Because the correction is calculated as if the nose was facing north, we need to convert it for the current heading.
+            pthread_mutex_lock(&mutex);
             gps_roll_adjust = ((float)gps_roll_adjust_north * cos(angle_yaw * 0.017453)) + ((float)gps_pitch_adjust_north * cos((angle_yaw - 90) * 0.017453));
             gps_pitch_adjust = ((float)gps_pitch_adjust_north * cos(angle_yaw * 0.017453)) + ((float)gps_roll_adjust_north * cos((angle_yaw + 90) * 0.017453));
 
@@ -241,27 +244,33 @@ void read_gps(void) {
             if (gps_roll_adjust < -300) gps_roll_adjust = -300;
             if (gps_pitch_adjust > 300) gps_pitch_adjust = 300;
             if (gps_pitch_adjust < -300) gps_pitch_adjust = -300;
+            pthread_mutex_unlock(&mutex);
         }
     }
 
     if (gps_watchdog_timer + 1000 < get_cpu_usecs()) {                                                             //If the watchdog timer is exceeded the GPS signal is missing.
         if (flight_mode >= 3 && start > 0) {                                                                  //If flight mode is set to 3 (GPS hold).
+            pthread_mutex_lock(&mutex);
             flight_mode = 2;                                                                                    //Set the flight mode to 2.
+            pthread_mutex_unlock(&mutex);
             error = 4;                                                                                          //Output an error.
         }
     }
 
     if (flight_mode < 3 && waypoint_set > 0) {                                                              //If the GPS hold mode is disabled and the waypoints are set.
+        pthread_mutex_lock(&mutex);
         gps_roll_adjust = 0;                                                                                  //Reset the gps_roll_adjust variable to disable the correction.
         gps_pitch_adjust = 0;                                                                                 //Reset the gps_pitch_adjust variable to disable the correction.
         if (waypoint_set == 1) {                                                                              //If the waypoints are stored
             gps_rotating_mem_location = 0;                                                                      //Set the gps_rotating_mem_location to zero so we can empty the
             waypoint_set = 2;                                                                                   //Set the waypoint_set variable to 2 as an indication that the buffer is not cleared.
         }
+        pthread_mutex_unlock(&mutex);
         gps_lon_rotating_mem[ gps_rotating_mem_location] = 0;                                                 //Reset the current gps_lon_rotating_mem location.
         gps_lat_rotating_mem[ gps_rotating_mem_location] = 0;                                                 //Reset the current gps_lon_rotating_mem location.
         gps_rotating_mem_location++;                                                                          //Increment the gps_rotating_mem_location variable for the next loop.
         if (gps_rotating_mem_location == 36) {                                                                //If the gps_rotating_mem_location equals 36, all the buffer locations are cleared.
+            pthread_mutex_lock(&mutex);
             waypoint_set = 0;                                                                                   //Reset the waypoint_set variable to 0.
             //Reset the variables that are used for the D-controller.
             gps_lat_error_previous = 0;
@@ -272,6 +281,7 @@ void read_gps(void) {
             //Reset the waypoints.
             l_lat_waypoint = 0;
             l_lon_waypoint = 0;
+            pthread_mutex_unlock(&mutex);
         }
     }
 }

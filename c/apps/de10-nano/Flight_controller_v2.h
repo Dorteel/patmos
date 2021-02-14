@@ -19,7 +19,7 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-float dt =0.004; /// loop timer in secs
+float dt =0.04; /// loop timer in secs
 #define battery_voltage_available 0// battery_voltage input from the fpga to compensate the esc input for change in battery volatge(will be later provided by DTU)
 #define GYRO_CALLIB 1 //set to 1 to swtich on gyro callibration before flight
 //channel 1- roll
@@ -41,7 +41,7 @@ float dt =0.004; /// loop timer in secs
 //   /        \
 //m3/          \m2
 
-
+#define PRINT_COMMANDS true
 #define STM32_board_LED PC13               //Change PC13 if the LED on the STM32 is connected to another output.
 
 //Tuning parameters/settings is explained in this video: https://youtu.be/ys-YpOaA2ME

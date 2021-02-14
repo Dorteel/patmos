@@ -4,6 +4,7 @@
 
 #ifndef PATMOS_ACTUATOR_RECEIVER_H
 #define PATMOS_ACTUATOR_RECEIVER_H
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <machine/patmos.h>
@@ -93,41 +94,29 @@ int convert_receiver_channel(unsigned int function)
 // stores receiver values in an global array
 void intr_handler(void) {
     // read the receiver pwm duty cycle
-  pthread_mutex_lock(&mutex);
-  pthread_mutex_unlock(&mutex);
-  __uint32_t timer = get_cpu_usecs();
-  while(!program_off){
-    asm volatile ("" : : : "memory");
-    #ifndef WITHOUT_MUTEX
-      pthread_mutex_lock(&mutex);
-    #endif
+  while(!program_off)
+  {
+      
       receiver_input[0] = receiver_read(0);
       receiver_input[1] = receiver_read(1);
       receiver_input[2] = receiver_read(2);
       receiver_input[3] = receiver_read(3);
 
-      channel_1 = convert_receiver_channel(0);  //1(0)               //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
-      channel_2 = convert_receiver_channel(1);  //2(1)               //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
-      channel_3 = convert_receiver_channel(2);  //0(0)               //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
-      channel_4 = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
-      channel_5 = receiver_read(5);
-      channel_6 = receiver_read(4);
-
-
-      // channel_1 = receiver_read(0);
-      // channel_2 = receiver_read(1);
-      // channel_3 = receiver_read(2);
-      // channel_4 = receiver_read(3);
-      // channel_5 = receiver_read(4);
-      // channel_6 = receiver_read(5);
-    #ifndef WITHOUT_MUTEX
+      int channel_1_tmp = convert_receiver_channel(0);  //1(0)               //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
+      int channel_2_tmp = convert_receiver_channel(1);  //2(1)               //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
+      int channel_3_tmp = convert_receiver_channel(2);  //0(0)               //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
+      int channel_4_tmp = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
+      int channel_5_tmp = receiver_read(5);
+      int channel_6_tmp = receiver_read(4);
+      pthread_mutex_lock(&mutex);
+      channel_1 = channel_1_tmp;
+      channel_2 = channel_2_tmp;
+      channel_3 = channel_3_tmp;
+      channel_4 = channel_4_tmp;
+      channel_5 = channel_5_tmp;
+      channel_6 = channel_6_tmp;
       pthread_mutex_unlock(&mutex);
-    #endif
-    while (get_cpu_usecs() - timer < 4000);
-    printf("receiver-timer: %llu \n",get_cpu_usecs()-timer);
-    timer = get_cpu_usecs();
   }
-    
 }
 
 
@@ -136,15 +125,16 @@ void change_settings(void) {
   adjustable_setting_2 = variable_2_to_adjust;
   adjustable_setting_3 = variable_3_to_adjust;
 
-  for (error = 0; error < 150; error ++) {
-    millis(20);
-    send_telemetry_data();
-  }
+  // for (error = 0; error < 150; error ++) {
+    // send_telemetry_data();
+  // }
   error = 0;
-
+  pthread_mutex_lock(&mutex);
+  pthread_mutex_unlock(&mutex);
   while (channel_6 >= 1900) {
-    micros(3700);
-    send_telemetry_data();
+    // send_telemetry_data();
+    pthread_mutex_lock(&mutex);
+    pthread_mutex_unlock(&mutex);
     if (channel_1 > 1550)adjustable_setting_1 += (float)(channel_1 - 1550) * 0.000001;
     if (channel_1 < 1450)adjustable_setting_1 -= (float)(1450 - channel_1) * 0.000001;
     if (adjustable_setting_1 < 0)adjustable_setting_1 = 0;

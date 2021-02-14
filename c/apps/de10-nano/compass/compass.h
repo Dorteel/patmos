@@ -9,11 +9,17 @@
 #include "../basic_lib/led.h"
 
 void read_compass() {
-    compass_y = i2c_reg8_read16b(compass_address,0x03);                 //Add the low and high byte to the compass_y variable.
-    compass_y *= -1;                                              //Invert the direction of the axis.
-    compass_z = i2c_reg8_read16b(compass_address,0x05);                 //Add the low and high byte to the compass_z variable.;
-    compass_x = i2c_reg8_read16b(compass_address,0x07);                 //Add the low and high byte to the compass_x variable.;
-    compass_x *= -1;                                              //Invert the direction of the axis.
+    __int16_t compass_y_tmp = i2c_reg8_read16b(compass_address,0x03);                 //Add the low and high byte to the compass_y variable.
+    compass_y_tmp *= -1;                                              //Invert the direction of the axis.
+    __int16_t compass_z_tmp = i2c_reg8_read16b(compass_address,0x05);                 //Add the low and high byte to the compass_z variable.;
+    __int16_t compass_x_tmp = i2c_reg8_read16b(compass_address,0x07);                 //Add the low and high byte to the compass_x variable.;
+    compass_x_tmp *= -1;                                              //Invert the direction of the axis.
+
+    pthread_mutex_lock(&mutex);
+    compass_x = compass_x_tmp;
+    compass_y = compass_y_tmp;
+    compass_z = compass_z_tmp;
+    pthread_mutex_unlock(&mutex);
 
 //    printf("compasss: %d, %d, %d ", compass_x,compass_y,compass_z);
     //Before the compass can give accurate measurements it needs to be calibrated. At startup the compass_offset and compass_scale
@@ -33,28 +39,32 @@ void read_compass() {
 
     //Now that the horizontal values are known the heading can be calculated. With the following lines of code the heading is calculated in degrees.
     //Please note that the atan2 uses radians in stead of degrees. That is why the 180/3.14 is used.
+    
     if (compass_y_horizontal < 0)actual_compass_heading = 180 + (180 + ((atan2(compass_y_horizontal, compass_x_horizontal)) * (180 / 3.14)));
     else actual_compass_heading = (atan2(compass_y_horizontal, compass_x_horizontal)) * (180 / 3.14);
-
+    pthread_mutex_lock(&mutex);
     actual_compass_heading += declination;                                 //Add the declination to the magnetic compass heading to get the geographic north.
     if (actual_compass_heading < 0) actual_compass_heading += 360;         //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
     else if (actual_compass_heading >= 360) actual_compass_heading -= 360; //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
+    pthread_mutex_unlock(&mutex);
 }
 
 //At startup the registers of the compass need to be set. After that the calibration offset and scale values are calculated.
 void setup_compass() {
-    printf("compass setup\n");
+    if(PRINT_COMMANDS)printf("compass setup\n");
     i2c_reg8_write8(compass_address,0x00,0x78);                                            //Set the Configuration Regiser A bits as 01111000 to set sample rate (average of 8 at 75Hz).
     i2c_reg8_write8(compass_address,0x01,0x20);                                            //Set the Configuration Regiser B bits as 00100000 to set the gain at +/-1.3Ga.
     i2c_reg8_write8(compass_address,0x02,0x00);                                            //Set the Mode Regiser bits as 00000000 to set Continues-Measurement Mode.
 
 //Calculate the calibration offset and scale values
+    pthread_mutex_lock(&mutex);
     compass_scale_y = ((float)compass_cal_values[1] - compass_cal_values[0]) / (compass_cal_values[3] - compass_cal_values[2]);
     compass_scale_z = ((float)compass_cal_values[1] - compass_cal_values[0]) / (compass_cal_values[5] - compass_cal_values[4]);
 
     compass_offset_x = (compass_cal_values[1] - compass_cal_values[0]) / 2 - compass_cal_values[1];
     compass_offset_y = (((float)compass_cal_values[3] - compass_cal_values[2]) / 2 - compass_cal_values[3]) * compass_scale_y;
     compass_offset_z = (((float)compass_cal_values[5] - compass_cal_values[4]) / 2 - compass_cal_values[5]) * compass_scale_z;
+    pthread_mutex_unlock(&mutex);
 }
 
 
