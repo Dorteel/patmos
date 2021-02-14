@@ -18,12 +18,12 @@ unsigned int GYRO_Z_H = 0;
 unsigned int GYRO_Z_L = 0;
 
 
-void millis(int ms)
-{
-  unsigned int timer_ms = (get_cpu_usecs()/1000);
-  unsigned int loop_timer = timer_ms;
-  while(timer_ms - loop_timer < ms)timer_ms = (get_cpu_usecs()/1000);
-}
+// void millis(int ms)
+// {
+//   unsigned int timer_ms = (get_cpu_usecs()/1000);
+//   unsigned int loop_timer = timer_ms;
+//   while(timer_ms - loop_timer < ms)timer_ms = (get_cpu_usecs()/1000);
+// }
 
 
 void gyro_setup()

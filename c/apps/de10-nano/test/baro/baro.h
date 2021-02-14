@@ -20,8 +20,6 @@
 #define CMD_ADC_D1      0x48     // Pressure - 4096 resolution
 #define CMD_ADC_D2      0x58     // Temperature - 4096 resolution
 
-#define Q7_8_NUMBER(X) (short)((X)*(256))
-
 //
 // ***********************************************
 // ************** V A R I A B L E S **************
@@ -29,7 +27,7 @@
 unsigned long offi;
 unsigned long sensi;
 unsigned long Ti;
-unsigned long Coff[6];
+unsigned long BaroMeterCoff[6];
 unsigned int data[3];
 //
 // ***********************************************
@@ -39,5 +37,5 @@ void millis(int ms);
 void barometer_reset(void);
 void barometer_setup(void);
 unsigned long barometer_adc(char ADDR);
-void barometer_main(void);
+int barometer_pressure(void);
 #endif // BARO_H_

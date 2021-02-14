@@ -30,8 +30,7 @@ void millis(int milliseconds)
   unsigned int loop_timer = timer_ms;
   while(timer_ms - loop_timer < milliseconds)timer_ms = (get_cpu_usecs()/1000);
 }
-//LEDs
-#define LED ( *( ( volatile _IODEV unsigned * ) PATMOS_IO_LED ) )
+
 
 
 #define BARO_REG                   0xA0   // R
@@ -45,23 +44,7 @@ unsigned long Coff[6], Ti = 0, offi = 0, sensi = 0;
 unsigned int data[3];
 //////////////
 
-//Blinks the LEDs once
-void blink_once(){
-  int i, j;
-  for (i=2000; i!=0; --i)
-    for (j=2000; j!=0; --j)
-      LED = 0x0001;
-  for (i=2000; i!=0; --i)
-    for (j=2000; j!=0; --j)
-      LED = 0x0000;
-  return;
-}
 
-void LED_out(int i){
-  if(i==1) LED = 0x0001;
-  else LED = 0x0000;
-  return;
-}
 
 void check_barometer(void) {
     loop_counter = 0;
@@ -84,10 +67,10 @@ void check_barometer(void) {
         SENS_C1 = C[1] * pow(2, 15);                                  //This value is pre-calculated to offload the main program loop.
 
         start = 0;
-    unsigned timediff = 0;
+
     while(1){                                           //Stay in this loop until the data variable data holds a q.
-        unsigned int start = (get_cpu_usecs());
         loop_timer = get_cpu_usecs() + 20000;                                 //Set the loop_timer variable to the current micros() value + 4000.
+        unsigned start = get_cpu_usecs();
         barometer_counter ++;                                         //Increment the barometer_counter variable for the next step.
 
         if (barometer_counter == 1) {
@@ -112,7 +95,6 @@ void check_barometer(void) {
             }
         }
         if (barometer_counter == 2) {
-
             //Calculate pressure as explained in the datasheet of the MS-5611.
             dT = C[5];
             dT <<= 8;
@@ -142,7 +124,7 @@ void check_barometer(void) {
                 start++;
                 actual_pressure = 0;
             }
-            //else printf("Pressure : %f \n", actual_pressure);
+            else printf("Pressure : %f \n", actual_pressure);
         }
         if (barometer_counter == 3) {
             barometer_counter = 0;
@@ -151,8 +133,7 @@ void check_barometer(void) {
         if(loop_counter>1000)
             break;
         while (loop_timer > get_cpu_usecs());
-    unsigned now = (get_cpu_usecs());
-    printf("Runtime: %d\n",(now-start) );
+        printf("Running time: %llu\n", (get_cpu_usecs()-start));
     }
     loop_counter = 0;                                                                     //Reset the loop counter variable to 0.
     start = 0;
@@ -166,4 +147,3 @@ int main(int argc, char **argv)
     check_barometer();
   return 0;
 }
-  

@@ -16,7 +16,7 @@
 
 
 
-
+float dt =0.04; /// loop timer in secs
 #define battery_voltage_available 0// battery_voltage input from the fpga to compensate the esc input for change in battery volatge(will be later provided by DTU)
 #define GYRO_CALLIB 1 //set to 1 to swtich on gyro callibration before flight
 //channel 1- roll
@@ -70,8 +70,7 @@ const float pid_d_gain_yaw = 0.0;                 //Gain setting for the pitch D
 int pid_max_yaw = 400;                            //Maximum output of the PID-controller (+/-)
 
 
-int first_time=1, acc_count=0;
-float pitch_offset=0,roll_offset=0;
+bool first_angle=false;
 
 //During flight the battery voltage drops and the motors are spinning at a lower RPM. This has a negative effecct on the
 //altitude hold function. With the battery_compensation variable it's possible to compensate for the battery voltage drop.
@@ -172,7 +171,6 @@ __uint32_t raw_pressure, raw_temperature, temp, raw_temperature_rotating_memory[
 float actual_pressure, actual_pressure_slow, actual_pressure_fast, actual_pressure_diff;
 float ground_pressure, altutude_hold_pressure, return_to_home_decrease;
 __int32_t dT, dT_C5;
-float dt =0.02;
 //Altitude PID variables
 float pid_i_mem_altitude, pid_altitude_setpoint, pid_altitude_input, pid_output_altitude, pid_last_altitude_d_error;
 __uint8_t parachute_rotating_mem_location;

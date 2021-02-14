@@ -56,12 +56,12 @@
 
 int main(int argc, char **argv)
 {
-
   intr_handler();                                                //Setup the timers for the receiver inputs and ESC's output.
   gps_setup();                                                  //Set the baud rate and output refreshrate of the GPS module.
   gyro_setup();                                                 //Initiallize the gyro and set the correct registers.
 
   ////////////////// to be uncommented after composss node is made
+
   setup_compass();                                              //Initiallize the compass and set the correct registers.
   read_compass();                                               //Read and calculate the compass data.
   angle_yaw = actual_compass_heading;                           //Set the initial compass heading.

@@ -1,6 +1,17 @@
-MAIN?=Flight_controller_v2
-#MAIN?=blinking
-MAIN?=test/imu_test
+#===== TEST
+#MAIN?=test/TestCode-BaroMeter
+#MAIN?=test/TestCode-IMU
+#MAIN?=test/TestCode-Receiver
+#MAIN?=test/TestCode-BaroMeter
+#MAIN?=test/TestCode-Compass
+MAIN?=test/compass_test
+
+
+
+#===== MAIN
+#MAIN?=Flight_controller_v2
+
+#===== SUPPLEMENT
 SERIAL?=/dev/ttyUSB0
 I2C?=basic_lib/i2c_master
 BARO?=test/baro/baro
@@ -15,6 +26,9 @@ LDFLAGS?= \
 all:
 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(GPS).c $(MAIN).c -o de10-nano.elf -lm
 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(GPS).c $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm
+# 	BARO
+# 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c $(MAIN).c -o de10-nano.elf -lm
+# 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm
 download:
 	patserdow -v $(SERIAL) de10-nano.elf
 

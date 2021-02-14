@@ -1,6 +1,3 @@
-// Created by rahul on 11/22/20.
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <machine/rtc.h>
@@ -14,12 +11,8 @@
 #include "../compass/compass.h"
 
 void callibrate_compass(void) {
-    compass_calibration_on = 1;                                                //Set the compass_calibration_on variable to disable the adjustment of the raw compass values.
-    LED_out(1);                                                             //The red led will indicate that the compass calibration is active.
-    LED_out(0);                                                            //Turn off the green led as we don't need it.
-                                             //Send telemetry data to the ground station.
-    // micros(3700);                                                 //Simulate a 250Hz program loop.
-    read_compass();                                                          //Read the raw compass values.
+    compass_calibration_on = 1;  //Set the compass_calibration_on variable to disable the adjustment of the raw compass values.
+    read_compass();              //Read the raw compass values.
     //In the following lines the maximum and minimum compass values are detected and stored.
     if (compass_x < compass_cal_values[0])compass_cal_values[0] = compass_x;
     if (compass_x > compass_cal_values[1])compass_cal_values[1] = compass_x;
@@ -34,12 +27,8 @@ void callibrate_compass(void) {
     read_compass();                                                            //Read and calculate the compass data.
     angle_yaw = actual_compass_heading;                                        //Set the initial compass heading.
 
-    LED_out(0);
     for (error = 0; error < 15; error ++) {
-        LED_out(1);
-        millis(50);
-        LED_out(0);
-        millis(50);
+        millis(100);
     }
 
     error = 0;
@@ -111,7 +100,7 @@ int main()
     angle_yaw = actual_compass_heading;                           //Set the initial compass heading.//
     printf("hello compass and imu");
     loop_timer = get_cpu_usecs();
-    for (int i = 0; i < 10000; ++i)
+    for (int i = 0; i < 1000; ++i)
     {
         gyro_signalen();
         read_compass();
@@ -159,7 +148,7 @@ int main()
         pitch_level_adjust = angle_pitch;                                           //Calculate the pitch angle correction.
         roll_level_adjust = angle_roll;                                             //Calculate the roll angle correction.
 
-        printf("pitch:: %f  roll: %f yaw : %f actual_compass_heading: %f \n",angle_pitch,angle_roll,angle_yaw,actual_compass_heading);
+        //printf("pitch:: %f  roll: %f yaw : %f actual_compass_heading: %f \n",angle_pitch,angle_roll,angle_yaw,actual_compass_heading);
         while (get_cpu_usecs() - loop_timer < dt*1000000);                                            //We wait until 4000us are passed.
         loop_timer = get_cpu_usecs();
 

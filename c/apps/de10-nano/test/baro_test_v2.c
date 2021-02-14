@@ -83,7 +83,7 @@ void barometer_setup(void)
     }
 }
 
-
+/*
  * Function: barometer_adc
  * ----------------------------
  *   Starts the ADC conversion and reads the value
@@ -93,11 +93,11 @@ void barometer_setup(void)
  *         Possible commands are descibed in the spec sheet of the MS5611
  *
  *  Returns: The converted (digital) pressure or temperature value
- 
+*/
 unsigned long barometer_adc(char ADDR)
 {
-  i2c_reg8_write8(MS5611_ADDR, ADDR, (int)NULL);
-  millis(10);
+  //i2c_reg8_write8(MS5611_ADDR, ADDR, (int)NULL);
+  //millis(10);
   unsigned long reading = i2c_reg8_read24b(MS5611_ADDR, 0x00);
   return reading;
 }
@@ -115,7 +115,6 @@ unsigned long barometer_adc(char ADDR)
  */
 void barometer_main(void)
 {
-
   unsigned long ptemp = barometer_adc(CMD_ADC_D1);
   unsigned long temp = barometer_adc(CMD_ADC_D2);
   //
@@ -158,19 +157,19 @@ void barometer_main(void)
   ptemp = (ptemp * sens / 2097152 - off);
   ptemp /= 32768;
 
-  float pressure = ptemp / 100.0;
-  float ctemp = temp / 100.0;
-  float fTemp = ctemp * 1.8 + 32.0;
 
-// ----------- Printing functions for comments -----------
-//
+  float pressure = ptemp / 100;
+  float ctemp = temp / 100;
+  float fTemp = ctemp * 1.8 + 32;
+
   if (TESTING)
   {
     printf("Temperature in Celsius : %f            ",ctemp);
     printf(" Pressure : %f ",pressure);
     printf(" mbar \n"); 
-    millis(10);
   }
+
+
 }
 
 //
@@ -182,8 +181,13 @@ int main(int argc, char **argv)
   barometer_reset();
   barometer_setup();
   
-  for(int i=0;i<10;i++)
+  for(int i=0;i<100;i++)
+  {
+    unsigned start = (get_cpu_usecs());
     barometer_main();
+    unsigned now = (get_cpu_usecs());
+    printf("Runtime: %d\n",(now-start) );
+  }
   return 0;
 }
 

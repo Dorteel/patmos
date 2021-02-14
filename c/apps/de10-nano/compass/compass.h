@@ -6,7 +6,6 @@
 #define PATMOS_COMPASS_H
 #include "../basic_lib/i2c_master.h"
 #include "../basic_lib/timer.h"
-#include "../basic_lib/led.h"
 
 void read_compass() {
     compass_y = i2c_reg8_read16b(compass_address,0x03);                 //Add the low and high byte to the compass_y variable.
@@ -15,7 +14,7 @@ void read_compass() {
     compass_x = i2c_reg8_read16b(compass_address,0x07);                 //Add the low and high byte to the compass_x variable.;
     compass_x *= -1;                                              //Invert the direction of the axis.
 
-//    printf("compasss: %d, %d, %d ", compass_x,compass_y,compass_z);
+    //printf("compass raw values:\t X: %d, Y: %d, Z: %d\n", compass_x,compass_y,compass_z);
     //Before the compass can give accurate measurements it needs to be calibrated. At startup the compass_offset and compass_scale
     //variables are calculated. The following part will adjust the raw compas values so they can be used for the calculation of the heading.
     if (compass_calibration_on == 0) {                            //When the compass is not beeing calibrated.
@@ -26,8 +25,9 @@ void read_compass() {
         compass_x += compass_offset_x;                              //Add the x-offset to the raw value.
     }
 
-    //The compass values change when the roll and pitch angle of the quadcopter changes. That's the reason that the x and y values need to calculated for a virtual horizontal position.
-    //The 0.0174533 value is phi/180 as the functions are in radians in stead of degrees.
+    // The compass values change when the roll and pitch angle of the quadcopter changes.
+    // That's the reason that the x and y values need to calculated for a virtual horizontal position.
+    // The 0.0174533 value is pi/180 as the functions are in radians in stead of degrees.
     compass_x_horizontal = (float)compass_x * cos(angle_pitch * -0.0174533) + (float)compass_y * sin(angle_roll * 0.0174533) * sin(angle_pitch * -0.0174533) - (float)compass_z * cos(angle_roll * 0.0174533) * sin(angle_pitch * -0.0174533);
     compass_y_horizontal = (float)compass_y * cos(angle_roll * 0.0174533) + (float)compass_z * sin(angle_roll * 0.0174533);
 
@@ -39,6 +39,7 @@ void read_compass() {
     actual_compass_heading += declination;                                 //Add the declination to the magnetic compass heading to get the geographic north.
     if (actual_compass_heading < 0) actual_compass_heading += 360;         //If the compass heading becomes smaller then 0, 360 is added to keep it in the 0 till 360 degrees range.
     else if (actual_compass_heading >= 360) actual_compass_heading -= 360; //If the compass heading becomes larger then 360, 360 is subtracted to keep it in the 0 till 360 degrees range.
+    printf("compass:\t X: %.3f,\tY: %.3f,\tHeading: %.3f\n", compass_x_horizontal,compass_y_horizontal,actual_compass_heading);
 }
 
 //At startup the registers of the compass need to be set. After that the calibration offset and scale values are calculated.

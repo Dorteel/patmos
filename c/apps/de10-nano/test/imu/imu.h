@@ -76,7 +76,7 @@ unsigned int angle_yaw;
 // ***********************************************
 // ************** F U N C T I O N S **************
 //
-void millis(int ms);
+// void millis(int ms);
 void gyro_setup(void);
 void gyro_calibrate(void);
 void gyro_compensated_read();
