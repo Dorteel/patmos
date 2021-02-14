@@ -111,7 +111,7 @@ int main()
     angle_yaw = actual_compass_heading;                           //Set the initial compass heading.//
     printf("hello compass and imu");
     loop_timer = get_cpu_usecs();
-    for (int i = 0; i < 10000; ++i)
+    for (int i = 0; i < 1000; ++i)
     {
         gyro_signalen();
         read_compass();
