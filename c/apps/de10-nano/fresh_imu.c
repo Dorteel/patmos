@@ -37,13 +37,6 @@ __int32_t acc_total_vector, acc_total_vector_at_start;
 bool first_angle=false;
 int side_thread_timer;
 
-#define ITERATIONS 1000
-
-#ifdef WITHOUT_MUTEX
-_UNCACHED
-#endif
-int cnt = 0;
-
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -87,22 +80,16 @@ void gyro_setup()
 
 void gyro_signalen()
 {
-    pthread_mutex_lock(&mutex);
-    pthread_mutex_unlock(&mutex);
     __uint32_t timer = get_cpu_usecs();
     while(!program_off){
-        asm volatile ("" : : : "memory");
-        #ifndef WITHOUT_MUTEX
-            pthread_mutex_lock(&mutex);
-        #endif
             //Read the MPU-6050
-            // acc_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H);
-            // acc_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_YOUT_H);
-            // acc_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_ZOUT_H);
-            // temperature = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_TEMP_OUT_H);
-            // gyro_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_XOUT_H);
-            // gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
-            // gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
+            acc_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H);
+            acc_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_YOUT_H);
+            acc_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_ZOUT_H);
+            temperature = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_TEMP_OUT_H);
+            gyro_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_XOUT_H);
+            gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
+            gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
 
             if(cal_int == 500)
             {
@@ -146,25 +133,30 @@ void gyro_signalen()
 
 
             //57.296 = 1 / (3.142 / 180) The Arduino asin function is in radians
+            pthread_mutex_lock(&mutex);
               angle_pitch_acc = asin(acc_y/acc_total_vector)* 57.296;                  //Calculate the pitch angle.
               angle_roll_acc = asin(acc_x/acc_total_vector)* -57.296;                  //Calculate the roll angle.
-         
+            pthread_mutex_unlock(&mutex);
+            
+
             if(!first_angle){
+              pthread_mutex_lock(&mutex);
             angle_pitch = angle_pitch_acc;                                                 //Set the pitch angle to the accelerometer angle.
             angle_roll = angle_roll_acc;                                                   //Set the roll angle to the accelerometer angle.
+            pthread_mutex_unlock(&mutex);
             first_angle = true;
             }
             else{
+              pthread_mutex_lock(&mutex);
               angle_pitch = angle_pitch * 0.98 + angle_pitch_acc * 0.02;                 //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
               angle_roll = angle_roll * 0.98 + angle_roll_acc * 0.02;                    //Correct the drift of the gyro roll angle with the accelerometer roll angle.
+              pthread_mutex_unlock(&mutex);
             }
 
-        #ifndef WITHOUT_MUTEX
-            pthread_mutex_unlock(&mutex);
-        #endif
+            // pitch_level_adjust = angle_pitch;                                           //Calculate the pitch angle correction.
+            // roll_level_adjust = angle_roll; 
+            
         while (get_cpu_usecs() - timer < dt*1000000);
-        // printf("gyro-timer: %llu \n",get_cpu_usecs()-timer);
-        
         timer = get_cpu_usecs();
     }
 
@@ -221,29 +213,6 @@ void callibrate_gyro()
 
 }
 
-
-// void * work1(void * arg) {
-//   int id = get_cpuid();
-//   pthread_mutex_lock(&mutex);
-//   pthread_mutex_unlock(&mutex);
-//   int timer = get_cpu_usecs();
-//   while(!program_off){
-//     asm volatile ("" : : : "memory");
-// #ifndef WITHOUT_MUTEX
-//     pthread_mutex_lock(&mutex);
-// #endif
-//     ++channel_1;
-// #ifndef WITHOUT_MUTEX
-//     pthread_mutex_unlock(&mutex);
-// #endif
-//     while (get_cpu_usecs() - timer < 4000);
-//     timer = get_cpu_usecs();
-//   }
-//   return NULL;
-// }
-
-
-
 int main()
 {
   gyro_setup();
@@ -271,22 +240,7 @@ int main()
   int loop_timer =  get_cpu_usecs();
   for (int k = 0; k < 1000; ++k)
   {
-    asm volatile ("" : : : "memory");
-    pthread_mutex_lock(&mutex);
-    acc_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H);
-    acc_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_YOUT_H);
-    acc_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_ZOUT_H);
-    // temperature = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_TEMP_OUT_H);
-    gyro_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_XOUT_H);
-    gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
-    gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
-    // printf("pitch angle: %f  \n",angle_pitch);
-    // printf("side_thread_timer: %d\n",side_thread_timer );
-    // signature = i2c_reg8_read8(MPU6050_I2C_ADDRESS, MPU6050_WHO_AM_I);
-    // printf("Signature = 0x%.2X\n", signature);
-
-    pthread_mutex_unlock(&mutex);
-
+    printf("angle_pitch: %f, angle_roll: %f \n",angle_pitch,angle_roll);
     while (get_cpu_usecs() - loop_timer < dt*1000000);
     printf("loop_timer: %llu\n",get_cpu_usecs() - loop_timer );
     loop_timer =  get_cpu_usecs();

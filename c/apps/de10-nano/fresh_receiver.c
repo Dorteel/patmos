@@ -14,22 +14,17 @@
 #include <math.h>
 #include <machine/rtc.h>
 
-
-_UNCACHED __int32_t channel_1;
-_UNCACHED __int32_t channel_2;
-_UNCACHED __int32_t channel_3;
-_UNCACHED __int32_t channel_4;
-_UNCACHED __int32_t channel_5;
-_UNCACHED __int32_t channel_6;
-_UNCACHED __int32_t receiver_input[6];
-_UNCACHED int program_off=0;
-_UNCACHED int low[4]={1003,1004,1000,999}, center[4]={1493,1503,1496,1331}, high[4]={2002,2000,1993,1994};///(th,roll,pitch,yaw)
-
 #define ITERATIONS 1000
+__int32_t channel_1;
+__int32_t channel_2;
+__int32_t channel_3;
+__int32_t channel_4;
+__int32_t channel_5;
+__int32_t channel_6;
+__int32_t receiver_input[6];
+int program_off=0;
+int low[4]={1003,1004,1000,999}, center[4]={1493,1503,1496,1331}, high[4]={2002,2000,1993,1994};///(th,roll,pitch,yaw)
 
-#ifdef WITHOUT_MUTEX
-_UNCACHED
-#endif
 int cnt = 0;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -116,76 +111,45 @@ int convert_receiver_channel(unsigned int function)
 void intr_handler_multi(){
     // read the receiver pwm duty cycle
   // __uint32_t timer = get_cpu_usecs();
-  pthread_mutex_lock(&mutex);
-  pthread_mutex_unlock(&mutex);
   while(!program_off)
   {
-    // asm volatile ("" : : : "memory");
-    // #ifndef WITHOUT_MUTEX
       
-    // #endif
-      // receiver_input[0] = receiver_read(0);
-      // receiver_input[1] = receiver_read(1);
-      // receiver_input[2] = receiver_read(2);
-      // receiver_input[3] = receiver_read(3);
-      // channel_5 = receiver_read(5);
-      // channel_6 = receiver_read(4);
+      receiver_input[0] = receiver_read(0);
+      receiver_input[1] = receiver_read(1);
+      receiver_input[2] = receiver_read(2);
+      receiver_input[3] = receiver_read(3);
 
-      // channel_1 = convert_receiver_channel(0);  //1(0)               //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
-      // channel_2 = convert_receiver_channel(1);  //2(1)               //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
-      // channel_3 = convert_receiver_channel(2);  //0(0)               //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
-      // channel_4 = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
-      // channel_5 = receiver_read(5);
-      // channel_6 = receiver_read(4);
-      asm volatile ("" : : : "memory");
+      int channel_1_tmp = convert_receiver_channel(0);  //1(0)               //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
+      int channel_2_tmp = convert_receiver_channel(1);  //2(1)               //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
+      int channel_3_tmp = convert_receiver_channel(2);  //0(0)               //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
+      int channel_4_tmp = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
+      int channel_5_tmp = receiver_read(5);
+      int channel_6_tmp = receiver_read(4);
       pthread_mutex_lock(&mutex);
-      channel_1 = convert_receiver_channel(0);  //1(0)               //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
-      channel_2 = convert_receiver_channel(1);  //2(1)               //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
-      channel_3 = convert_receiver_channel(2);  //0(0)               //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
-      channel_4 = convert_receiver_channel(3);  //3(0)               //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
-      
+      channel_1 = channel_1_tmp;
+      channel_2 = channel_2_tmp;
+      channel_3 = channel_3_tmp;
+      channel_4 = channel_4_tmp;
+      channel_5 = channel_5_tmp;
+      channel_6 = channel_6_tmp;
       pthread_mutex_unlock(&mutex);
-      // channel_1 = receiver_read(0);
-      // channel_2 = receiver_read(1);
-      // channel_3 = receiver_read(2);
-      // channel_4 = receiver_read(3);
-      // channel_5 = receiver_read(4);
-      // channel_6 = receiver_read(5);
-      // while (get_cpu_usecs() - timer < 4000);
-      // printf("receiver-timer: %llu \n",get_cpu_usecs()-timer); 
-      // timer = get_cpu_usecs();
-    // #ifndef WITHOUT_MUTEX
-      // pthread_mutex_unlock(&mutex);
-    // #endif
   }
 }
 
 
-void * work1(void * arg) {
-  int id = get_cpuid();
-  pthread_mutex_lock(&mutex);
-  pthread_mutex_unlock(&mutex);
-  int timer = get_cpu_usecs();
-  while(!program_off){
-    asm volatile ("" : : : "memory");
-#ifndef WITHOUT_MUTEX
+void * work(void * arg) {
+  for(int i = 0; i < ITERATIONS; i++) {
     pthread_mutex_lock(&mutex);
-#endif
-    ++channel_1;
-#ifndef WITHOUT_MUTEX
+    cnt++;
     pthread_mutex_unlock(&mutex);
-#endif
-    while (get_cpu_usecs() - timer < 4000);
-    timer = get_cpu_usecs();
   }
   return NULL;
 }
 
 
-
 int main()
 {
-  int cpucnt = 2;
+    int cpucnt = 3;
     const int exp = cpucnt*ITERATIONS;
     
     printf("Started using %d threads\n",cpucnt);
@@ -194,39 +158,41 @@ int main()
     
     // No thread starts before all are initialized;
     pthread_mutex_lock(&mutex);
-    for(int i = 1; i < cpucnt;i++)
+    for(int i = 1; i < cpucnt;)
     {
-      int retval = pthread_create(threads+i, NULL, intr_handler_multi, NULL);
+      int retval = pthread_create(threads+i, NULL, work, NULL);
       if(retval != 0)
       {
         printf("Unable to start thread %d, error code %d\n", i, retval);
         return retval;
       }
+      i++;
+      retval = pthread_create(threads+i, NULL, intr_handler_multi, NULL);
+      if(retval != 0)
+      {
+        printf("Unable to start thread %d, error code %d\n", i, retval);
+        return retval;
+      }
+      i++;
     }
     pthread_mutex_unlock(&mutex);
 
   int  loop_timer = get_cpu_usecs();
   while(!program_off)
   {
-    asm volatile ("" : : : "memory");
-    pthread_mutex_lock(&mutex);
-    receiver_input[0] = receiver_read(0);
-    receiver_input[1] = receiver_read(1);
-    receiver_input[2] = receiver_read(2);
-    receiver_input[3] = receiver_read(3);
-    channel_5 = receiver_read(5);
-    channel_6 = receiver_read(4);
-    // printf("channel1: %d, channel2: %d, channel3: %d, channel4: %d,channel5: %d,channel6: %d\n",channel_1,channel_2,channel_3,channel_4,channel_5,channel_6 );
-
     if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
     {
+      pthread_mutex_lock(&mutex);
       program_off = 1;
+      pthread_mutex_unlock(&mutex);
       printf("code stop\n");
     }
-    pthread_mutex_unlock(&mutex);
+    
     printf("time:%llu\n",get_cpu_usecs()-loop_timer);
     loop_timer = get_cpu_usecs();
   }
+
+
   for(int i = 1; i < cpucnt; i++) {
     void * dummy;
     int retval = pthread_join(*(threads+i), &dummy);

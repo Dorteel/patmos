@@ -38,7 +38,7 @@ entity patmos_top is
         i2c_scl              : inout std_logic;
         ad0                  : out   std_logic;
         -- Actuator and propdrive OUT
-        pwm_measurment_input : in    std_logic_vector(3 downto 0);
+        pwm_measurment_input : in    std_logic_vector(5 downto 0);
         propdrive_out_port   : out   std_logic_vector(3 downto 0);
         --SPI Master interface
         SPIMaster_miso       : in    std_logic;
@@ -149,7 +149,7 @@ architecture rtl of patmos_top is
         generic (
             OCP_DATA_WIDTH   : natural := 32;
             OCP_ADDR_WIDTH   : natural := 16;
-            ACTUATOR_NUMBER  : natural := 4;
+            ACTUATOR_NUMBER  : natural := 6;
             PROPDRIVE_NUMBER : natural := 4
         );
         port (
@@ -326,7 +326,7 @@ begin
     (
         OCP_DATA_WIDTH   => 32,
         OCP_ADDR_WIDTH   => 16,
-        ACTUATOR_NUMBER  => 4,
+        ACTUATOR_NUMBER  => 6,
         PROPDRIVE_NUMBER => 4
     )
     port map

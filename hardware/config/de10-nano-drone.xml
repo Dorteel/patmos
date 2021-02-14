@@ -8,13 +8,13 @@
   <ExtMem size="1g" DevTypeRef="DDR3Bridge" />
 
   <IOs>
-  <IO DevTypeRef="Uart1" offset="6"/>
-  <IO DevTypeRef="Uart2" offset="7"/>
-  <IO DevTypeRef="Leds" offset="9"/>
-  <IO DevTypeRef="I2CMaster" offset="11"/>
-  <IO DevTypeRef="Actuators" offset="12"/>
+  <IO DevTypeRef="Uart1" offset="6" core="3"/>
+  <IO DevTypeRef="Uart2" offset="7" core="3"/>
+  <IO DevTypeRef="Leds" offset="9" core="0"/>
+  <IO DevTypeRef="I2CMaster" offset="11" core="1"/>
+  <IO DevTypeRef="Actuators" offset="12" core="2"/>
   <!-- <IO DevTypeRef="AauMpu" offset="15"/> -->
-  <IO DevTypeRef="SPIMaster" offset="14"/>
+  <IO DevTypeRef="SPIMaster" offset="14" core="0"/>
   </IOs>
 
   <Devs>
