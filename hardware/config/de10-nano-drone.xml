@@ -1,5 +1,5 @@
 <patmos default="default.xml">
-  <description>Configuration for de10-nano board with on-chip memory</description>
+  <description>Configuration for de10-nano board for drone with external ddr3 memory</description>
 
   <frequency Hz="50000000"/>
   <pipeline dual="false" />
