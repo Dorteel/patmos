@@ -28,7 +28,7 @@ __int16_t acc_pitch_cal_value;
 __int16_t acc_roll_cal_value;
 int program_off=0;
 int signature;
-float dt=0.04;
+float dt=0.02;
 float gyro_roll_input;
 float gyro_pitch_input;
 float gyro_yaw_input;
@@ -78,8 +78,64 @@ void gyro_setup()
 
 }
 
+void callibrate_gyro()
+{
+    printf("gyro callibration\n");
+    cal_int = 0;                                                                        //Set the cal_int variable to zero.
+    if (cal_int != 500) {
+        //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).
+        int timer = get_cpu_usecs();
+        for (cal_int = 0; cal_int < 500 ; cal_int ++) {                                  //Take 2000 readings for calibration.
+            // if (cal_int % 125 == 0) LED_out(1);                     //Change the led status every 125 readings to indicate calibration.
+            acc_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H);
+            acc_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_YOUT_H);
+            acc_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_ZOUT_H);
+            // temperature = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_TEMP_OUT_H);
+            gyro_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_XOUT_H);
+            gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
+            gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
+
+            if(cal_int == 500)
+            {
+                gyro_axis[1] -= gyro_axis_cal[1];                                     //Only compensate after the calibration.
+                gyro_axis[2] -= gyro_axis_cal[2];                                     //Only compensate after the calibration.
+                gyro_axis[3] -= gyro_axis_cal[3];                                     //Only compensate after the calibration.
+            }
+            gyro_roll = gyro_axis[1];                                               //Set gyro_roll to the correct axis.
+            gyro_pitch = gyro_axis[2];                                              //Set gyro_pitch to the correct axis.
+            gyro_pitch *= -1;                                                       //Invert gyro_pitch to change the axis of sensor data.
+            gyro_yaw = gyro_axis[3];                                                //Set gyro_yaw to the correct axis.
+            gyro_yaw *= -1;                                                         //Invert gyro_yaw to change the axis of sensor data.
+
+
+            acc_x = acc_axis[2];                                                    //Set acc_x to the correct axis.
+            acc_x *= -1;                                                            //Invert acc_x.
+            acc_y = acc_axis[1];                                                    //Set acc_y to the correct axis.
+            acc_z = acc_axis[3];                                                    //Set acc_z to the correct axis.
+            acc_z *= -1;                                                            //Invert acc_z.                                                                //Read the gyro output.
+            gyro_roll_cal += gyro_roll;                                                     //Ad roll value to gyro_roll_cal.
+            gyro_pitch_cal += gyro_pitch;                                                   //Ad pitch value to gyro_pitch_cal.
+            gyro_yaw_cal += gyro_yaw;                                                       //Ad yaw value to gyro_yaw_cal.
+            // LED_out(0);                                                                       //Small delay to simulate a 250Hz loop during calibration.
+            while (get_cpu_usecs() - timer < dt*1000000);
+            timer = get_cpu_usecs();
+        }
+        //Now that we have 2000 measures, we need to devide by 2000 to get the average gyro offset.
+        gyro_roll_cal /= 500;                                                            //Divide the roll total by 2000.
+        gyro_pitch_cal /= 500;                                                           //Divide the pitch total by 2000.
+        gyro_yaw_cal /= 500;                                                             //Divide the yaw total by 2000.
+    }
+    printf("gyro callibration done\n");
+
+}
+
+
 void gyro_signalen()
 {
+   gyro_setup();
+   // pthread_mutex_lock(&mutex);
+   callibrate_gyro();
+   // pthread_mutex_unlock(&mutex);
     __uint32_t timer = get_cpu_usecs();
     while(!program_off){
             //Read the MPU-6050
@@ -157,68 +213,20 @@ void gyro_signalen()
             // roll_level_adjust = angle_roll; 
             
         while (get_cpu_usecs() - timer < dt*1000000);
+        pthread_mutex_lock(&mutex);
+        printf("imu loop_timer: %llu\n",get_cpu_usecs() - timer );
+        pthread_mutex_unlock(&mutex);
         timer = get_cpu_usecs();
     }
 
 }
 
-void callibrate_gyro()
-{
-    printf("gyro callibration\n");
-    cal_int = 0;                                                                        //Set the cal_int variable to zero.
-    if (cal_int != 500) {
-        //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).
-        int timer = get_cpu_usecs();
-        for (cal_int = 0; cal_int < 500 ; cal_int ++) {                                  //Take 2000 readings for calibration.
-            if (cal_int % 125 == 0) LED_out(1);                     //Change the led status every 125 readings to indicate calibration.
-            acc_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H);
-            acc_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_YOUT_H);
-            acc_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_ZOUT_H);
-            temperature = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_TEMP_OUT_H);
-            gyro_axis[1] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_XOUT_H);
-            gyro_axis[2] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_YOUT_H);
-            gyro_axis[3] = i2c_reg8_read16b(MPU6050_I2C_ADDRESS, MPU6050_GYRO_ZOUT_H);
-
-            if(cal_int == 500)
-            {
-                gyro_axis[1] -= gyro_axis_cal[1];                                     //Only compensate after the calibration.
-                gyro_axis[2] -= gyro_axis_cal[2];                                     //Only compensate after the calibration.
-                gyro_axis[3] -= gyro_axis_cal[3];                                     //Only compensate after the calibration.
-            }
-            gyro_roll = gyro_axis[1];                                               //Set gyro_roll to the correct axis.
-            gyro_pitch = gyro_axis[2];                                              //Set gyro_pitch to the correct axis.
-            gyro_pitch *= -1;                                                       //Invert gyro_pitch to change the axis of sensor data.
-            gyro_yaw = gyro_axis[3];                                                //Set gyro_yaw to the correct axis.
-            gyro_yaw *= -1;                                                         //Invert gyro_yaw to change the axis of sensor data.
-
-
-            acc_x = acc_axis[2];                                                    //Set acc_x to the correct axis.
-            acc_x *= -1;                                                            //Invert acc_x.
-            acc_y = acc_axis[1];                                                    //Set acc_y to the correct axis.
-            acc_z = acc_axis[3];                                                    //Set acc_z to the correct axis.
-            acc_z *= -1;                                                            //Invert acc_z.                                                                //Read the gyro output.
-            gyro_roll_cal += gyro_roll;                                                     //Ad roll value to gyro_roll_cal.
-            gyro_pitch_cal += gyro_pitch;                                                   //Ad pitch value to gyro_pitch_cal.
-            gyro_yaw_cal += gyro_yaw;                                                       //Ad yaw value to gyro_yaw_cal.
-            LED_out(0);                                                                       //Small delay to simulate a 250Hz loop during calibration.
-            while (get_cpu_usecs() - timer < dt*1000000);
-            timer = get_cpu_usecs();
-        }
-        //Now that we have 2000 measures, we need to devide by 2000 to get the average gyro offset.
-        gyro_roll_cal /= 500;                                                            //Divide the roll total by 2000.
-        gyro_pitch_cal /= 500;                                                           //Divide the pitch total by 2000.
-        gyro_yaw_cal /= 500;                                                             //Divide the yaw total by 2000.
-    }
-    printf("gyro callibration done\n");
-
-}
 
 int main()
 {
-  gyro_setup();
+  // gyro_setup();
   // callibrate_gyro();
   int cpucnt = 2;
-    const int exp = cpucnt*ITERATIONS;
     
     printf("Started using %d threads\n",cpucnt);
     
@@ -240,8 +248,12 @@ int main()
   int loop_timer =  get_cpu_usecs();
   for (int k = 0; k < 1000; ++k)
   {
+    if (k % 50 == 0) LED_out(1);
+    pthread_mutex_lock(&mutex);
+    pthread_mutex_unlock(&mutex);
     printf("angle_pitch: %f, angle_roll: %f \n",angle_pitch,angle_roll);
     while (get_cpu_usecs() - loop_timer < dt*1000000);
+    LED_out(0);
     printf("loop_timer: %llu\n",get_cpu_usecs() - loop_timer );
     loop_timer =  get_cpu_usecs();
   }

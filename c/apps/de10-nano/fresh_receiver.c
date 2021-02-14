@@ -180,14 +180,16 @@ int main()
   int  loop_timer = get_cpu_usecs();
   while(!program_off)
   {
+    pthread_mutex_lock(&mutex);
+    pthread_mutex_unlock(&mutex);
     if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
     {
-      pthread_mutex_lock(&mutex);
       program_off = 1;
-      pthread_mutex_unlock(&mutex);
+      
       printf("code stop\n");
     }
     
+    printf("channel_1: %d\n",channel_1 );
     printf("time:%llu\n",get_cpu_usecs()-loop_timer);
     loop_timer = get_cpu_usecs();
   }

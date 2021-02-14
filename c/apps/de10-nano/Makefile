@@ -1,4 +1,4 @@
-MAIN?=fresh_receiver
+MAIN?=fresh_imu
 
 #MAIN?=blinking
 # MAIN?=test/imu_test
