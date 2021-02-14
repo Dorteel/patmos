@@ -204,8 +204,8 @@ class Patmos(configFile: String, binFile: String, datFile: String) extends Modul
   Config.loadConfig(configFile)
   Config.minPcWidth = util.log2Up((new File(binFile)).length.toInt / 4)
   Config.datFile = datFile
-
-  val nrCores = Config.getConfig.coreCount
+  val config = Config.getConfig
+  val nrCores = config.coreCount
 
   println("Config core count: " + nrCores)
 
@@ -241,8 +241,8 @@ class Patmos(configFile: String, binFile: String, datFile: String) extends Modul
 
   val IO_DEVICE_ADDR_WIDTH = 16
 
-  val cmpdevios = Config.getConfig.cmpDevices.map(e => {
-    println(e)
+  val cmpdevios = config.cmpDevices.map(e => {
+    println(s"device: $e")
     val (off, width, dev) = e match {
       case "Argo" =>  (0x1C, 5, Module(new argo.Argo(nrCores, wrapped=false, emulateBB=false)))
       case "Hardlock" => (0xE801, IO_DEVICE_ADDR_WIDTH, Module(new cmp.HardlockOCPWrapper(() => new cmp.Hardlock(nrCores, 1))))
@@ -273,22 +273,22 @@ class Patmos(configFile: String, binFile: String, datFile: String) extends Modul
 
   for (i <- (0 until nrCores)) {
 
+    println(s"Config core $i:")
     // Default values for interrupt pins
       cores(i).io.interrupts := Vec.fill(INTR_COUNT) {false.B}
 
     // Creation of IO devices
-    val conf = Config.getConfig
-
     val cpuinfo = Module(new CpuInfo(Config.datFile, nrCores))
     cpuinfo.io.nr := i.U
     cpuinfo.io.cnt := nrCores.U
 
     val singledevios = 
-      (Config.getConfig.Devs
+      (config.Devs
       .map(e => (e,Config.createDevice(e).asInstanceOf[CoreDevice]))
-      .filter(e => i == 0 || !e._2.io.isInstanceOf[HasPins])
+      .filter(e => e._1.core.contains(i) || (e._1.core == None && (i == 0 || !e._2.io.isInstanceOf[HasPins])))
       .map{case (conf,dev) => 
       {
+          println(s"device: ${conf.ref}")
           if(dev.io.isInstanceOf[HasSuperMode]) {
             dev.io.asInstanceOf[HasSuperMode].superMode <> cores(i).io.superMode
           }
@@ -307,7 +307,7 @@ class Patmos(configFile: String, binFile: String, datFile: String) extends Modul
           new {
             val off = conf.offset
             val io = dev.io.asInstanceOf[Bundle]
-            val name = conf.name
+            val name = conf.ref
           }
       }} ++ List(new {
         val off = CPUINFO_OFFSET
@@ -425,7 +425,7 @@ class Patmos(configFile: String, binFile: String, datFile: String) extends Modul
   }
 
   // Connect memory controller
-  val ramConf = Config.getConfig.ExtMem.ram
+  val ramConf = config.ExtMem.ram
   val ramCtrl = Config.createDevice(ramConf).asInstanceOf[BurstDevice]
 
   registerPins(ramConf.name, ramCtrl.io)
@@ -470,9 +470,7 @@ class Patmos(configFile: String, binFile: String, datFile: String) extends Modul
 // this testing and main file should go into it's own folder
 //commented out Chisel3 tester has changed see https://github.com/schoeberl/chisel-examples/blob/master/TowardsChisel3.md 
 /*class PatmosTest(pat: Patmos) extends Tester(pat) 
-
   println("Patmos start")
-
   for (i <- 0 until 100) {
     step(1) // false as third argument disables printout
     // The PC printout is a little off on a branch
@@ -487,7 +485,6 @@ class Patmos(configFile: String, binFile: String, datFile: String) extends Modul
 /*class SimpleBundle() extends Bundle{
   val sig = UInt(width=5)
 }
-
 class TestTrait() extends CoreDevice2() {
   override val io = IO(new CoreDeviceIO2()) /*with patmos.HasPins {
     override val pins = new Bundle {
@@ -495,20 +492,16 @@ class TestTrait() extends CoreDevice2() {
       val rx = Bits(INPUT, 1)
     }
   })*/
-
 }*/
 
 object PatmosMain extends App {
-  override def main(args: Array[String]): Unit = {
 
-    val chiselArgs = args.slice(3, args.length)
-    val configFile = args(0)
-    val binFile = args(1)
-    val datFile = args(2)
-	  
-    new java.io.File("build/").mkdirs // build dir is created
-    Config.loadConfig(configFile)
-    //chiselMain(chiselArgs, () => Module(new Patmos(configFile, binFile, datFile))) //{ f => new PatmosTest(f) }
-    chisel3.Driver.execute(chiselArgs, () => new Patmos(configFile, binFile, datFile)) //TestTrait())//
-  }
+  val chiselArgs = args.slice(3, args.length)
+  val configFile = args(0)
+  val binFile = args(1)
+  val datFile = args(2)
+    
+  new java.io.File("build/").mkdirs // build dir is created
+  Config.loadConfig(configFile)
+  (new chisel3.stage.ChiselStage).emitVerilog(new Patmos(configFile, binFile, datFile), chiselArgs)
 }
