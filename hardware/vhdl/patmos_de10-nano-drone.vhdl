@@ -100,7 +100,10 @@ architecture rtl of patmos_top is
             io_Uart_1_tx              : out std_logic;
             io_Uart_1_rx              : in std_logic;
             io_UartCmp_tx             : out   std_logic;
-            io_UartCmp_rx             : in    std_logic;
+            io_Uart1_rx               : in    std_logic;
+            io_Uart1_tx               : out   std_logic;
+            io_Uart2_rx               : in    std_logic;
+            io_Uart2_tx               : out   std_logic;
             io_SPIMaster_miso         : in    std_logic;
             io_SPIMaster_mosi         : out   std_logic;
             io_SPIMaster_nSS          : out   std_logic;
