@@ -15,6 +15,17 @@
 // 0xf00e0000 = PATMOS_IO_ETH1 in patmos.h
 
 const unsigned int CPU_PERIOD = 20; //CPU period in ns.
+// This is the value of the config value to set CH0-CH1 as differential, so the module:
+// - VCC goes to 5V
+// - CH1 and GND go to 0V
+// - CH0 goes to the analog value
+// const unsigned int ADC_CH0 = 0;
+unsigned int ADC_CH0 = 0;   // 0x1000
+//              S/D O/S S1 S0 UNI SLP
+// bit position: 5   4   3  2  1   0
+// unipolar CH0: 1   0   0  0  0   0   = 16
+// polar CH0-1:  0   0   0  0  0   0   = 0
+
 
 // This shitty fcn is from Arduino
 void millis(int milliseconds)
@@ -57,18 +68,29 @@ int read_adc()
 int main(int argc, char **argv)
 {
   unsigned int adc_val;
-  unsigned int adc_val_wr = 0;
   printf("Analog reading test App.\n");
 
-  for (int i=0; i<10; i++)
+  printf("Config word --> read value\n");
+ADC_CH0 = 1;
+
+while(ADC_CH0<2147483648)
+{
+
+  for (int i=0; i<5; i++)
   {
-    //adc_val_wr = (unsigned int)i;
-    write_adc(adc_val_wr);
-    printf("Analog writing: %d\n", adc_val_wr);
+    // First write the config word and send it to the ADC module
+    write_adc(ADC_CH0);
+  //  printf("config word = %d --> ", ADC_CH0);
+    printf("    %d     -->     ", ADC_CH0);
+   
+    // Read what the module has measured acording to that configuration
     adc_val = read_adc();
-    printf("Analog read value: %d\n",adc_val);
-    millis(500);
+    printf("%d\n",adc_val);
+    millis(100);
   }
+
+  ADC_CH0 = ADC_CH0*2;
+}
 
   return 0;
 }
