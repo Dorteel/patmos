@@ -207,7 +207,6 @@ __uint8_t home_point_recorded;
 __int32_t lat_gps_home, lon_gps_home;
 
 short int acc_axis[4], gyro_axis[4];
-int gyro_axis_cal[4], acc_axis_cal[4];
 
 //Adjust settings online
 __uint32_t setting_adjust_timer;

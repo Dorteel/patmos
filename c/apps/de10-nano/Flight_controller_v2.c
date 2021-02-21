@@ -334,9 +334,11 @@ printf("thread initaited\n");
 
     if (get_cpu_usecs() - loop_timer > 40050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
     while (get_cpu_usecs() - loop_timer < 40000);                                            //We wait until 4000us are passed.
-    loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
+    if(PRINT_COMMANDS)printf("main loop_timer: %llu\n",get_cpu_usecs() - loop_timer );
   	if(PRINT_COMMANDS)printf("flight_mode: %d  start: %d\n",flight_mode, start );
     if(PRINT_COMMANDS)printf("esc1:%d esc2:%d esc3:%d esc4:%d\n",esc_1, esc_2, esc_3, esc_4 );
+    loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
+
 
   }
 

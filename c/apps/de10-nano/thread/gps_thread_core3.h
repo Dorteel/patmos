@@ -17,12 +17,12 @@ void gps_thread()
         read_gps();
 
         while (get_cpu_usecs() - timer < dt*1000000);
-        if(PRINT_COMMANDS)
-        {
-            pthread_mutex_lock(&mutex);
-            printf("gps loop_timer: %llu\n",get_cpu_usecs() - timer );
-            pthread_mutex_unlock(&mutex);
-        }
+        // if(PRINT_COMMANDS)
+        // {
+        //     pthread_mutex_lock(&mutex);
+        //     printf("gps loop_timer: %llu\n",get_cpu_usecs() - timer );
+        //     pthread_mutex_unlock(&mutex);
+        // }
         timer = get_cpu_usecs();
     }
 

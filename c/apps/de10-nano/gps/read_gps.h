@@ -32,6 +32,9 @@ char cGSA[6] = "$GNGSA";
 // Drone GPS = GNRMC, NEO6M GPS = GPRMC
 
 
+#define error_print false
+
+
 void gps_setup(void)
 {
     if(PRINT_COMMANDS)printf("gps setup\n");
@@ -118,7 +121,7 @@ void read_gps(void) {
         }
     }
     result = gps_decode(&tpv, str_c);
-    if (result != GPS_OK)
+    if (result != GPS_OK && error_print)
     {
         fprintf(stderr, "Error (%d): %s\n", result, gps_error_string(result));
         //  return EXIT_FAILURE;
@@ -164,7 +167,7 @@ void read_gps(void) {
 
     // printf("lat_gps_actual: %f  lon_gps_actual: %f\n",(double)tpv.latitude,(double)tpv.longitude );
     if (new_gps_data_available) {                                                                           //If there is a new set of GPS data available.
-        if (number_used_sats < 8){if(PRINT_COMMANDS)printf("not enough satellite to lock on");}                                                              //Turn the LED on the STM solid on (LED function is inverted). Check the STM32 schematic.
+        if (number_used_sats < 8){if(PRINT_COMMANDS && error_print)printf("not enough satellite to lock on");}                                                              //Turn the LED on the STM solid on (LED function is inverted). Check the STM32 schematic.
         gps_watchdog_timer = get_cpu_usecs();                                                                        //Reset the GPS watch dog tmer.
         new_gps_data_available = 0;                                                                           //Reset the new_gps_data_available variable.
 
