@@ -44,33 +44,54 @@ unsigned int signature;
 
 float dT;
 
-unsigned int ACCEL_X_H;
-unsigned int ACCEL_X_L;
-unsigned int ACCEL_Y_H;
-unsigned int ACCEL_Y_L;
-unsigned int ACCEL_Z_H;
-unsigned int ACCEL_Z_L;
-unsigned int TEMP_L;
-unsigned int TEMP_H;
-unsigned int GYRO_X_H;
-unsigned int GYRO_X_L;
-unsigned int GYRO_Y_H;
-unsigned int GYRO_Y_L;
-unsigned int GYRO_Z_H;
-unsigned int GYRO_Z_L;
+// unsigned  int ACCEL_X_H;
+// unsigned  int ACCEL_X_L;
+// unsigned  int ACCEL_Y_H;
+// unsigned  int ACCEL_Y_L;
+// unsigned  int ACCEL_Z_H;
+// unsigned  int ACCEL_Z_L;
+// unsigned  int TEMP_L;
+// unsigned  int TEMP_H;
+// unsigned  int GYRO_X_H;
+// unsigned  int GYRO_X_L;
+// unsigned  int GYRO_Y_H;
+// unsigned  int GYRO_Y_L;
+// unsigned int GYRO_Z_H;
+// unsigned  int GYRO_Z_L;
+
+short int ACCEL_X_H;
+short int ACCEL_X_L;
+short int ACCEL_Y_H;
+short int ACCEL_Y_L;
+short int ACCEL_Z_H;
+short int ACCEL_Z_L;
+short int TEMP_L;
+short int TEMP_H;
+short int GYRO_X_H;
+short int GYRO_X_L;
+short int GYRO_Y_H;
+short int GYRO_Y_L;
+short int GYRO_Z_H;
+short int GYRO_Z_L;
 
 // Calibration variables
-unsigned int gyro_x;
-unsigned int gyro_y;
-unsigned int gyro_z;
+float gyro_x;
+float gyro_y;
+float gyro_z;
 
-unsigned int gyro_roll_cal;
-unsigned int gyro_pitch_cal;
-unsigned int gyro_yaw_cal;
+long int gyro_roll_cal;
+long int gyro_pitch_cal;
+long int gyro_yaw_cal;
 
-unsigned int angle_pitch;
-unsigned int angle_roll;
-unsigned int angle_yaw;
+float angle_pitch;
+float angle_roll;
+float angle_yaw;
+
+float acc_total_vector;
+float angle_pitch_acc;
+float angle_roll_acc;
+
+unsigned timer;
 
 //
 // ***********************************************

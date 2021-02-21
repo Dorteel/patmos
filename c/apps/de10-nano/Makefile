@@ -1,21 +1,21 @@
 #===== TEST
 #MAIN?=test/TestCode-BaroMeter
-#MAIN?=test/TestCode-IMU
+MAIN?=test/TestCode-IMU
 #MAIN?=test/TestCode-Receiver
 #MAIN?=test/TestCode-BaroMeter
 #MAIN?=test/TestCode-Compass
-MAIN?=test/compass_test
-
+#MAIN?=test/compass_test
+# MAIN?=test/imu_test
 
 
 #===== MAIN
 #MAIN?=Flight_controller_v2
 
-#===== SUPPLEMENT
+#===== SUPPLEMENT 
+SOURCES ?= basic_lib/i2c_master.c test/imu/imu.c gps/gps.c test/baro/baro.c
+# SOURCES ?= basic_lib/i2c_master.c gps/gps.c
 SERIAL?=/dev/ttyUSB0
-I2C?=basic_lib/i2c_master
-BARO?=test/baro/baro
-GPS?=gps/gps
+
 # This is the trivial Hello World example, distributed over two .c files
 
 LDFLAGS?= \
@@ -24,8 +24,14 @@ LDFLAGS?= \
         -Xgold --defsym -Xgold __heap_end=0x070000
 
 all:
-	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(GPS).c $(MAIN).c -o de10-nano.elf -lm
-	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(GPS).c $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm
+	patmos-clang -I ../.. -O2 $(LDFLAGS) $(SOURCES) $(MAIN).c -o de10-nano.elf -lm
+	patmos-clang -I ../.. -O2 $(LDFLAGS) $(SOURCES) $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm
+
+# 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(GPS).c $(MAIN).c -o de10-nano.elf -lm
+# 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(GPS).c $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm
+#	IMU	
+# 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(IMU).c $(I2C).c $(GPS).c $(MAIN).c -o de10-nano.elf -lm
+# 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(IMU).c $(I2C).c $(GPS).c $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm
 # 	BARO
 # 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c $(MAIN).c -o de10-nano.elf -lm
 # 	patmos-clang -I ../.. -O2 $(LDFLAGS) $(I2C).c $(BARO).c $(MAIN).c -o ~/t-crest/patmos/tmp/de10-nano.elf -lm

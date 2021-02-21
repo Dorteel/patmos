@@ -77,6 +77,8 @@ void gyro_signalen()
     acc_z = acc_axis[3];                                                    //Set acc_z to the correct axis.
     acc_z *= -1;                                                            //Invert acc_z.
 
+    // printf("pitch angle: %hd  roll angle: %hd yaw angle: %hd \n",gyro_roll,gyro_pitch,gyro_yaw);
+
 }
 
 

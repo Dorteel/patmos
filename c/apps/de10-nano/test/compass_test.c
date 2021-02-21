@@ -111,7 +111,7 @@ int main()
     angle_yaw = actual_compass_heading;                           //Set the initial compass heading.//
     printf("hello compass and imu");
     loop_timer = get_cpu_usecs();
-    for (int i = 0; i < 100; ++i)
+    for (int i = 0; i < 1000; ++i)
     {
         gyro_signalen();
         read_compass();
@@ -159,7 +159,8 @@ int main()
         pitch_level_adjust = angle_pitch;                                           //Calculate the pitch angle correction.
         roll_level_adjust = angle_roll;                                             //Calculate the roll angle correction.
 
-        printf("pitch:: %f  roll: %f yaw : %f actual_compass_heading: %f \n",angle_pitch,angle_roll,angle_yaw,actual_compass_heading);
+        //printf("pitch:: %f  roll: %f yaw : %f actual_compass_heading: %f \n",angle_pitch,angle_roll,angle_yaw,actual_compass_heading);
+        printf("actual_compass_heading: %f \n", actual_compass_heading);
         while (get_cpu_usecs() - loop_timer < dt*1000000);                                            //We wait until 4000us are passed.
         loop_timer = get_cpu_usecs();
 
