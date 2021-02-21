@@ -58,7 +58,7 @@
 
 int main(int argc, char **argv)
 {
-  int cpucnt = get_cpucnt();
+  int cpucnt = 3;
   if(PRINT_COMMANDS)printf("Started using %d threads\n",cpucnt);
   
   pthread_t *threads = malloc(sizeof(pthread_t) * cpucnt);
@@ -85,13 +85,13 @@ int main(int argc, char **argv)
       return retval;
     }
     i++;
-    retval = pthread_create(threads+i, NULL, gps_thread, NULL);
-    if(retval != 0)
-    {
-      printf("Unable to start thread %d, error code %d\n", i, retval);
-      return retval;
-    }
-    i++;
+    // retval = pthread_create(threads+i, NULL, gps_thread, NULL);
+    // if(retval != 0)
+    // {
+    //   printf("Unable to start thread %d, error code %d\n", i, retval);
+    //   return retval;
+    // }
+    // i++;
   }
   pthread_mutex_unlock(&mutex);
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 printf("thread initaited\n");
 
   // intr_handler();                                                //Setup the timers for the receiver inputs and ESC's output.
-  gps_setup();                                                  //Set the baud rate and output refreshrate of the GPS module.
+  // gps_setup();                                                  //Set the baud rate and output refreshrate of the GPS module.
   // gyro_setup();                                                 //Initiallize the gyro and set the correct registers.
 
   ////////////////// to be uncommented after composss node is made
@@ -109,15 +109,16 @@ printf("thread initaited\n");
   // angle_yaw = actual_compass_heading;                           //Set the initial compass heading.
 
   //Wait until the receiver is active.
-  pthread_mutex_lock(&mutex);
-  pthread_mutex_unlock(&mutex);
-  while (channel_1 < 990 || channel_2 < 990 || channel_3 < 990 || channel_4 < 990)  {
-    error = 4;                                                  //Set the error status to 4.
-    LED_out(1);                                             //Show the error via the red LED.                                                  //Delay 4ms to simulate a 250Hz loop
-    pthread_mutex_lock(&mutex);
-    pthread_mutex_unlock(&mutex);
-  }
-  error = 0;                                                    //Reset the error status to 0.
+  // pthread_mutex_lock(&mutex);
+  // pthread_mutex_unlock(&mutex);
+  // while (channel_1 < 990 || channel_2 < 990 || channel_3 < 990 || channel_4 < 990)  {
+  //   error = 4;                                                  //Set the error status to 4.
+  //   LED_out(1);                                             //Show the error via the red LED.                                                  //Delay 4ms to simulate a 250Hz loop
+  //   pthread_mutex_lock(&mutex);
+  //   pthread_mutex_unlock(&mutex);
+  //   printf("wating for receiver\n");
+  // }
+  // error = 0;                                                    //Reset the error status to 0.
 
 
   //When everything is done, turn off the led.
@@ -138,6 +139,9 @@ printf("thread initaited\n");
   // barometer_setup();
 ////////////////////////////
   //Before starting the avarage accelerometer value is preloaded into the variables.
+  millis(1000);
+  pthread_mutex_lock(&mutex);
+  pthread_mutex_unlock(&mutex);
   for (start = 0; start <= 24; start++)acc_z_average_short[start] = acc_z;
   for (start = 0; start <= 49; start++)acc_z_average_long[start] = acc_z;
   acc_z_average_short_total = acc_z * 25;
@@ -148,7 +152,7 @@ printf("thread initaited\n");
   if (motor_idle_speed > 1200)motor_idle_speed = 1200;          //Limit the maximum idle motor speed to 1200us.
 
   loop_timer = get_cpu_usecs();                                        //Set the timer for the first loop.
-
+  printf("main loop start\n");
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Main program loop
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,9 +166,8 @@ printf("thread initaited\n");
     {
       ///need to add safety land and then switch off
       program_off = 1;
-      break; 
+      // break; 
     }
-
     if(receiver_watchdog < 750)receiver_watchdog ++;
     if(receiver_watchdog == 750 && start == 2){
       channel_1 = 1500;
@@ -197,7 +200,6 @@ printf("thread initaited\n");
       }
       if (channel_6 < 1900)previous_channel_6 = 0;
     }
-
     heading_lock = 0;
     if (channel_6 > 1200)heading_lock = 1;                                           //If channel 6 is between 1200us and 1600us the flight mode is 2
 
@@ -220,8 +222,7 @@ printf("thread initaited\n");
     LED_out(1);                                                                  //Show the error via the red LED.
     if (gps_add_counter >= 0)gps_add_counter --;
 
-    read_gps();
-
+    // read_gps();
     pthread_mutex_lock(&mutex);
     pthread_mutex_unlock(&mutex);
     channel_1_base = channel_1;                                                      //Normally channel_1 is the pid_roll_setpoint input.
@@ -246,7 +247,6 @@ printf("thread initaited\n");
       pid_roll_setpoint_base = channel_1_base;
       pid_pitch_setpoint_base = channel_2_base;
     }
-
     //Because we added the GPS adjust values we need to make sure that the control limits are not exceded.
     if (pid_roll_setpoint_base > 2000)pid_roll_setpoint_base = 2000;
     if (pid_roll_setpoint_base < 1000)pid_roll_setpoint_base = 1000;
@@ -268,7 +268,6 @@ printf("thread initaited\n");
       if (battery_voltage > 6.0 && battery_voltage < low_battery_warning && error == 0)error = 1;
 
     }
-
 
 
     
@@ -301,7 +300,6 @@ printf("thread initaited\n");
           esc_4 += (12.40 - battery_voltage) * battery_compensation;                   //Compensate the esc-4 pulse for voltage drop.
         }
       }
-
       if (esc_1 < motor_idle_speed) esc_1 = motor_idle_speed;                        //Keep the motors running.
       if (esc_2 < motor_idle_speed) esc_2 = motor_idle_speed;                        //Keep the motors running.
       if (esc_3 < motor_idle_speed) esc_3 = motor_idle_speed;                        //Keep the motors running.
@@ -320,27 +318,38 @@ printf("thread initaited\n");
       esc_4 = 1000;                                                                  //If start is not 2 keep a 1000us pulse for ess-4.
     }
 
+    motor_publish =1;
+    // actuator_write(m1, 1000);                                                 //give motors 1000us pulse.
+    // actuator_write(m2, 1000);
+    // actuator_write(m3, 1000);
+    // actuator_write(m4, 1000);
 
-    actuator_write(m1, 1000);                                                 //give motors 1000us pulse.
-    actuator_write(m2, 1000);
-    actuator_write(m3, 1000);
-    actuator_write(m4, 1000);
+    // // send_telemetry_data();
+    // //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
+    // //Because of the angle calculation the loop time is getting very important. If the loop time is
+    // //longer or shorter than 4000us the angle calculation is off. If you modify the code make sure
+    // //that the loop time is still 4000us and no longer! More information can be found on
+    // //the Q&A page:
+    // //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
-    // send_telemetry_data();
-    //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-    //Because of the angle calculation the loop time is getting very important. If the loop time is
-    //longer or shorter than 4000us the angle calculation is off. If you modify the code make sure
-    //that the loop time is still 4000us and no longer! More information can be found on
-    //the Q&A page:
-    //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-
-    if (get_cpu_usecs() - loop_timer > 20050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
-    while (get_cpu_usecs() - loop_timer < 20000);                                            //We wait until 4000us are passed.
+    if (get_cpu_usecs() - loop_timer > 40050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
+    while (get_cpu_usecs() - loop_timer < 40000);                                            //We wait until 4000us are passed.
     loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
-  	if(PRINT_COMMANDS)printf("loop_timer: %d\n", loop_timer );   //607326091 - 609668094 = 2342003
   	if(PRINT_COMMANDS)printf("flight_mode: %d  start: %d\n",flight_mode, start );
     if(PRINT_COMMANDS)printf("esc1:%d esc2:%d esc3:%d esc4:%d\n",esc_1, esc_2, esc_3, esc_4 );
 
   }
+
+  for(int i = 1; i < cpucnt; i++) {
+    void * dummy;
+    int retval = pthread_join(*(threads+i), &dummy);
+    if(retval != 0)
+    {
+      printf("Unable to join thread %d, error code %d\n", i, retval);
+      return retval;
+    }
+  }
+  
+  free(threads);
   return 0;
 }

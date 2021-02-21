@@ -48,7 +48,12 @@ void gyro_setup()
 
 void callibrate_gyro()
 {
-    if(PRINT_COMMANDS)printf("gyro callibration\n");
+    if(PRINT_COMMANDS)
+    {
+        pthread_mutex_lock(&mutex);
+        printf("gyro callibration\n");
+        pthread_mutex_unlock(&mutex);
+    }
     cal_int = 0;                                                                        //Set the cal_int variable to zero.
     if (cal_int != 500) {
         //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).
@@ -84,7 +89,7 @@ void callibrate_gyro()
             gyro_pitch_cal += gyro_pitch;                                                   //Ad pitch value to gyro_pitch_cal.
             gyro_yaw_cal += gyro_yaw;                                                       //Ad yaw value to gyro_yaw_cal.
             // LED_out(0);                                                                       //Small delay to simulate a 250Hz loop during calibration.
-            while (get_cpu_usecs() - timer < 0.02*1000000);
+            while (get_cpu_usecs() - timer < dt*1000000);
             timer = get_cpu_usecs();
         }
         //Now that we have 2000 measures, we need to devide by 2000 to get the average gyro offset.
@@ -92,7 +97,12 @@ void callibrate_gyro()
         gyro_pitch_cal /= 500;                                                           //Divide the pitch total by 2000.
         gyro_yaw_cal /= 500;                                                             //Divide the yaw total by 2000.
     }
-    if(PRINT_COMMANDS)printf("gyro callibration done\n");
+    if(PRINT_COMMANDS)
+    {
+        pthread_mutex_lock(&mutex);
+        printf("gyro callibration done\n");
+        pthread_mutex_unlock(&mutex);
+    }
 
 }
 
@@ -120,6 +130,42 @@ void gyro_read()
         gyro_axis[3] -= gyro_axis_cal[3];                                     //Only compensate after the calibration.
     }
 }
+
+
+void vertical_acceleration_calculations(void) {
+    acc_z_average_short_rotating_mem_location++;
+    if (acc_z_average_short_rotating_mem_location == 25)acc_z_average_short_rotating_mem_location = 0;
+
+    pthread_mutex_lock(&mutex);
+    acc_z_average_short_total -= acc_z_average_short[acc_z_average_short_rotating_mem_location];
+    acc_z_average_short[acc_z_average_short_rotating_mem_location] = acc_total_vector;
+    acc_z_average_short_total += acc_z_average_short[acc_z_average_short_rotating_mem_location];
+    pthread_mutex_unlock(&mutex);
+
+    if (acc_z_average_short_rotating_mem_location == 0) {
+        acc_z_average_long_rotating_mem_location++;
+
+        if (acc_z_average_long_rotating_mem_location == 50)acc_z_average_long_rotating_mem_location = 0;
+
+        acc_z_average_long_total -= acc_z_average_long[acc_z_average_long_rotating_mem_location];
+        acc_z_average_long[acc_z_average_long_rotating_mem_location] = acc_z_average_short_total / 25;
+        acc_z_average_long_total += acc_z_average_long[acc_z_average_long_rotating_mem_location];
+    }
+    acc_z_average_total = acc_z_average_long_total / 50;
+
+
+    acc_alt_integrated += acc_total_vector - acc_z_average_total;
+    if (acc_total_vector - acc_z_average_total < 400 || acc_total_vector - acc_z_average_total > 400) {
+        if (acc_z_average_short_total / 25 - acc_z_average_total < 500 && acc_z_average_short_total / 25 - acc_z_average_total > -500)
+        {
+            if(acc_alt_integrated > 200) acc_alt_integrated -= 200;
+            else if(acc_alt_integrated < -200) acc_alt_integrated += 200;
+        }
+    }
+}
+
+
+
 void gyro_signalen()
 {
     gyro_read();
@@ -191,46 +237,7 @@ void gyro_signalen()
 
     vertical_acceleration_calculations();
 
-    if(PRINT_COMMANDS)
-    {
-        pthread_mutex_lock(&mutex);
-        printf("imu loop_timer: %llu\n",get_cpu_usecs() - timer );
-        pthread_mutex_unlock(&mutex);
-    }                                            
-
 }
 
-
-void vertical_acceleration_calculations(void) {
-    acc_z_average_short_rotating_mem_location++;
-    if (acc_z_average_short_rotating_mem_location == 25)acc_z_average_short_rotating_mem_location = 0;
-
-    pthread_mutex_lock(&mutex);
-    acc_z_average_short_total -= acc_z_average_short[acc_z_average_short_rotating_mem_location];
-    acc_z_average_short[acc_z_average_short_rotating_mem_location] = acc_total_vector;
-    acc_z_average_short_total += acc_z_average_short[acc_z_average_short_rotating_mem_location];
-    pthread_mutex_unlock(&mutex);
-
-    if (acc_z_average_short_rotating_mem_location == 0) {
-        acc_z_average_long_rotating_mem_location++;
-
-        if (acc_z_average_long_rotating_mem_location == 50)acc_z_average_long_rotating_mem_location = 0;
-
-        acc_z_average_long_total -= acc_z_average_long[acc_z_average_long_rotating_mem_location];
-        acc_z_average_long[acc_z_average_long_rotating_mem_location] = acc_z_average_short_total / 25;
-        acc_z_average_long_total += acc_z_average_long[acc_z_average_long_rotating_mem_location];
-    }
-    acc_z_average_total = acc_z_average_long_total / 50;
-
-
-    acc_alt_integrated += acc_total_vector - acc_z_average_total;
-    if (acc_total_vector - acc_z_average_total < 400 || acc_total_vector - acc_z_average_total > 400) {
-        if (acc_z_average_short_total / 25 - acc_z_average_total < 500 && acc_z_average_short_total / 25 - acc_z_average_total > -500)
-        {
-            if(acc_alt_integrated > 200) acc_alt_integrated -= 200;
-            else if(acc_alt_integrated < -200) acc_alt_integrated += 200;
-        }
-    }
-}
 
 #endif //PATMOS_GYRO_H

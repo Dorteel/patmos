@@ -116,6 +116,15 @@ void intr_handler(void) {
       channel_5 = channel_5_tmp;
       channel_6 = channel_6_tmp;
       pthread_mutex_unlock(&mutex);
+
+      if(motor_publish)
+      {
+        actuator_write(m1, esc_1);                                                 //give motors 1000us pulse.
+        actuator_write(m2, esc_2);
+        actuator_write(m3, esc_3);
+        actuator_write(m4, esc_4);
+        motor_publish=0;
+      }
   }
 }
 

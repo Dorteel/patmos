@@ -44,4 +44,4 @@ void i2c_thread()
 
 }
 
-#endif PATMOS_I2C_THREAD_H
+#endif //PATMOS_I2C_THREAD_H

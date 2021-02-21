@@ -59,10 +59,10 @@ void read_gps(void) {
         if (loop_counter < 500)loop_counter++;
         // millis(4);                                                              //Wait for 4000us to simulate a 250Hz loop.
         if (loop_counter == 1) {
-            if(PRINT_COMMANDS)printf("\n");
-            if(PRINT_COMMANDS)printf("====================================================================\n");
-            if(PRINT_COMMANDS)printf("Checking gps data @ 9600bps\n");
-            if(PRINT_COMMANDS)printf("====================================================================\n");
+            // if(PRINT_COMMANDS)printf("\n");
+            // if(PRINT_COMMANDS)printf("====================================================================\n");
+            // if(PRINT_COMMANDS)printf("Checking gps data @ 9600bps\n");
+            // if(PRINT_COMMANDS)printf("====================================================================\n");
         }
         //if (loop_counter > 1 && loop_counter < 500){
         if (loop_counter >= 1 && loop_counter < 500) {
@@ -135,7 +135,11 @@ void read_gps(void) {
     else longiude_east = 0;
 
     if(tpv.mode == 3)
+    {
+        pthread_mutex_lock(&mutex);
         number_used_sats =8;                                             //Filter the number of satillites from the GGA line.
+        pthread_mutex_unlock(&mutex);
+    }
 
     if (lat_gps_previous == 0 && lon_gps_previous == 0) {                                              //If this is the first time the GPS code is used.
         lat_gps_previous = lat_gps_actual;                                                               //Set the lat_gps_previous variable to the lat_gps_actual variable.

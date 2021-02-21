@@ -162,7 +162,7 @@ void barometer_setup()
 
     OFF_C2 = C[2] * pow(2, 16);                                   //This value is pre-calculated to offload the main program loop.
     SENS_C1 = C[1] * pow(2, 15);                                  //This value is pre-calculated to offload the main program loop.
-    
+
     //The MS5611 needs a few readings to stabilize.
     for (start = 0; start < 100; start++) {                       //This loop runs 100 times.
         read_barometer();                                           //Read and calculate the barometer data.
