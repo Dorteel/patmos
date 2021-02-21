@@ -20,7 +20,7 @@ int main(int argc, char **argv)
   unsigned timediff = 0;
   
 
-  for (int i = 0; i < 1000; i++)
+  for (int i = 0; i < 10000; i++)
   {
     // unsigned int start = (get_cpu_usecs());
     gyro_compensated_read();

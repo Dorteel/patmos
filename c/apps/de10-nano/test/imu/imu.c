@@ -1,5 +1,4 @@
 #include "imu.h"
-#include "Kalman_C.h"
 
 short FREQ = 25;
 float SSF = 65.5; // Sensitivity Scale Factor, should be 65.5
@@ -18,24 +17,7 @@ short roll_compensation = 0;
 short pitch_compensation = 0;
 short yaw_compensation = 0;
 
-// Kalman KalmanX;
-// Kalman KalmanY;
-
-// float KalAngleX;
-// float GYRO_X_VEL;
-
-    /* Kalman filter variables */
-// KalmanX.Q_angle = 0.001f; // Process noise variance for the accelerometer
-// KalmanX.Q_bias = 0.003f; // Process noise variance for the gyro bias
-// KalmanX.R_measure = 0.03f; // Measurement noise variance - this is actually the variance of the measurement noise
-
-// KalmanX.angle = 0.0f; // The angle calculated by the Kalman filter - part of the 2x1 state vector
-// KalmanX.bias = 0.0f; // The gyro bias calculated by the Kalman filter - part of the 2x1 state vector
-// KalmanX.rate; // Unbiased rate calculated from the rate and the calculated bias - you have to call getAngle to update the rate
-// KalmanX.P[2][2] = {0.0f,0.0f,0.0f,0.0f}; // Error covariance matrix - This is a 2x2 matrix
-
-
-
+float tau = 0.3;
 
 
 void gyro_setup()
@@ -60,10 +42,6 @@ void gyro_read()
 
     //printf("ACCEL_X_H: %hd,\t ACCEL_Y_H: %hd, ACCEL_Y_H: %hd\n", ACCEL_X_H, ACCEL_Y_H, ACCEL_Z_H);
 
-    // Offsets measured on leveled IMU
-    // ACCEL_X_H = -1*ACCEL_X_H - 51;
-    // ACCEL_Y_H = ACCEL_Y_H-171;
-    // ACCEL_Z_H = -1 * ACCEL_Z_H - (171+51);
 }
 
 
@@ -87,7 +65,6 @@ void gyro_compensated_read()
   angle_pitch += gyro_y;
   angle_yaw += gyro_z;
 
-  printf("Roll: %.5f\t Pitch: %.2f\t Yaw: %.2f \n", angle_roll, angle_pitch, angle_yaw);
 
   //Angle coupling
   angle_roll += angle_pitch * sin(gyro_z*(1/(FREQ/SSF)) * (3.142/180));
@@ -111,38 +88,15 @@ void gyro_compensated_read()
 
   // Complementary filter to correct for gyo drift
 
-  angle_roll = angle_roll * 0.996 + angle_roll_acc * 0.004;
-  angle_pitch = angle_pitch * 0.996 + angle_pitch_acc * 0.004;
-
-  // KalmanX.Q_angle = 0.001f; // Process noise variance for the accelerometer
-  // KalmanX.Q_bias = 0.003f; // Process noise variance for the gyro bias
-  // KalmanX.R_measure = 0.03f; // Measurement noise variance - this is actually the variance of the measurement noise
-
-  // KalmanX.angle = 0.0f; // The angle calculated by the Kalman filter - part of the 2x1 state vector
-  // KalmanX.bias = 0.0f; // The gyro bias calculated by the Kalman filter - part of the 2x1 state vector
-  // KalmanX.rate = 0.0f; // Unbiased rate calculated from the rate and the calculated bias - you have to call getAngle to update the rate
-  // //KalmanX.P[2][2] = {0.0f,0.0f,0.0f,0.0f}; // Error covariance matrix - This is a 2x2 matrix
+  angle_roll = angle_roll * (1-tau) + angle_roll_acc * tau;
+  angle_pitch = angle_pitch * (1-tau) + angle_pitch_acc * tau;
 
 
-  // KalmanX.angle = angle_roll;
-  // KalmanY.angle = angle_pitch;
-
-  // // Estimation of velocity
-  // GYRO_X_VEL = angle_roll_acc * ((1/FREQ)/1000);
-
-  // KalAngleX = Kalman_getAngle(angle_roll, GYRO_X_VEL, (1/FREQ*1000), &KalmanX);
-  // printf("Roll: %.5f\t Pitch: %.2f\t Yaw: %.2f KalmanX: %.5f\n", angle_roll, angle_pitch, angle_yaw, KalAngleX);
-  
-
-  // printf("Roll acc: %f,\tPitch acc:%f\n", angle_roll_acc, angle_pitch_acc);
-
-  //KalmanY
-
-  // // Complementary filter: Angle from  GYRO + Angle from Accelerometer
+  printf("Roll: %.5f\t Pitch: %.2f\t Yaw: %.2f \n", angle_roll, angle_pitch, angle_yaw);
 
 
   // Simulate loop time
-  while((get_cpu_usecs()-timer) < (1/FREQ*1000000));
+  while((get_cpu_usecs()-timer) < ((1/FREQ)*1000000));
 }
 
 
