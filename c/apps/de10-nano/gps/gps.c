@@ -47,7 +47,7 @@ static const char NULL_TIME[] = "0000-00-00T00:00:00.000Z";
 
 static char uint8_to_hex_char(const uint8_t n)
 {
-    static const int hex[] = {
+    static const hex[] = {
         '0', '1', '2', '3', '4', '5', '6', '7',
         '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
     };
@@ -576,7 +576,6 @@ static void parse_gll(struct gps_tpv *tpv, const char **token)
 
 static void parse_gsa(struct gps_tpv *tpv, const char **token)
 {
-    
     tpv->mode = parse_mode(token[1][0]);
 }
 
@@ -657,102 +656,90 @@ char *gps_encode(char *destination, const char *message)
 
 int gps_decode(struct gps_tpv *tpv, char *nmea)
 {
-    for (int k = 0; k < 4; ++k)
+    assert(tpv != NULL);
+    assert(nmea != NULL);
+
+    parse_function parse;
+    char *token[NMEA_MAX_FIELDS];
+    uint8_t checksum = 0;
+    uint8_t i = 0;
+    char c0 = *nmea++;
+    char c1;
+
+    /* Check if the first character is the header */
+    if (c0 != '$') return GPS_ERROR_HEAD;
+    c0 = *nmea++;
+
+    /* Store the talker ID */
+    c1 = *nmea++;
+    if (!c0 || !c1) return GPS_ERROR_TRUNCATED;
+    tpv->talker_id[0] = c0;
+    tpv->talker_id[1] = c1;
+
+    /* Compute the checksum thus far */
+    checksum ^= c0 ^ c1;
+
+    /* Use the sentence ID to determine which parsing function to use */
+    /* TODO: Switch checking for sentences on and off using # defines and a config.h */
+    if (memchr(nmea, '\0', SENTENCE_ID_SIZE))
+        return GPS_ERROR_TRUNCATED;
+    else if (match_sentence_id(nmea, "GGA"))
+        parse = parse_gga;
+    else if (match_sentence_id(nmea, "GLL"))
+        parse = parse_gll;
+    else if (match_sentence_id(nmea, "GSA"))
+        parse = parse_gsa;
+    else if (match_sentence_id(nmea, "RMC"))
+        parse = parse_rmc;
+    else if (match_sentence_id(nmea, "VTG"))
+        parse = parse_vtg;
+    else if (match_sentence_id(nmea, "ZDA"))
+        parse = parse_zda;
+    else
+        return GPS_ERROR_UNSUPPORTED;
+
+    /* Advance c0 to the first character in the sentence ID. This also syncs
+     * the NMEA string pointer with the current character being processed.
+     * This helps to make the tokenizing stage easier to maintain.
+     */
+    c0 = *nmea;
+
+    /* Tokenize and compute the checksum for the body of the NMEA sentence.
+     * Note that tokenizing begins after the first ',' is encountered. This
+     * works because the sentence ID is the first string processed and we do
+     * not need to store it as a token.
+     */
+    while (c0 != '*')
     {
-        assert(tpv != NULL);
-        assert(nmea != NULL);
-
-        parse_function parse;
-        char *token[NMEA_MAX_FIELDS];
-        uint8_t checksum = 0;
-        uint8_t i = 0;
-        char c0 = *nmea++;
-        char c1;
-
-        
-        /* Check if the first character is the header */
-        if (c0 != '$') return GPS_ERROR_HEAD;
-        c0 = *nmea++;
-
-        /* Store the talker ID */
-        c1 = *nmea++;
-        if (!c0 || !c1) return GPS_ERROR_TRUNCATED;
-        tpv->talker_id[0] = c0;
-        tpv->talker_id[1] = c1;
-
-        /* Compute the checksum thus far */
-        checksum ^= c0 ^ c1;
-
-        /* Use the sentence ID to determine which parsing function to use */
-        /* TODO: Switch checking for sentences on and off using # defines and a config.h */
-        if (memchr(nmea, '\0', SENTENCE_ID_SIZE))
+        if (!c0) return GPS_ERROR_TRUNCATED;
+        checksum ^= c0;
+        if (',' == c0)
         {
-            return GPS_ERROR_TRUNCATED;
+            *nmea = '\0';
+            token[i++] = nmea + 1;
         }
-        else if (match_sentence_id(nmea, "GGA"))
-        {
-            parse = parse_gga;
-        }
-        else if (match_sentence_id(nmea, "GLL"))
-        {
-            parse = parse_gll;
-        }
-        else if (match_sentence_id(nmea, "GSA"))
-        {
-            parse = parse_gsa;
-        }
-        else if (match_sentence_id(nmea, "RMC"))
-        {
-            parse = parse_rmc;
-        }
-        else if (match_sentence_id(nmea, "VTG"))
-        {
-            parse = parse_vtg;
-        }
-        else if (match_sentence_id(nmea, "ZDA"))
-        {
-            parse = parse_zda;
-        }
-        else
-        {
-            return GPS_ERROR_UNSUPPORTED;
-        }
-        /* Advance c0 to the first character in the sentence ID. This also syncs
-         * the NMEA string pointer with the current character being processed.
-         * This helps to make the tokenizing stage easier to maintain.
-         */
-        c0 = *nmea;
-
-        /* Tokenize and compute the checksum for the body of the NMEA sentence.
-         * Note that tokenizing begins after the first ',' is encountered. This
-         * works because the sentence ID is the first string processed and we do
-         * not need to store it as a token.
-         */
-        while (c0 != '*')
-        {
-            // printf("c0:%c\n",c0 );
-            if (!c0) return GPS_ERROR_TRUNCATED;
-            checksum ^= c0;
-            if (',' == c0)
-            {
-                *nmea = '\0';
-                token[i++] = nmea + 1;
-            }
-            c0 = (++nmea)[0];
-        }
-
-        /* Replace the '*' with a NUL in order to mark the end of the final token
-         * in the sentence. Then advance the pointer nmea one position ahead
-         * again.
-         */
-        parse(tpv, (const char **)token);
-
-        c0 = *nmea++;
-        c0 = *nmea++;
-        c0 = *nmea++;
-        c0 = *nmea++;
-        c0 = *nmea++;
+        c0 = (++nmea)[0];
     }
+
+    /* Replace the '*' with a NUL in order to mark the end of the final token
+     * in the sentence. Then advance the pointer nmea one position ahead
+     * again.
+     */
+    *nmea++ = '\0';
+    c0 = *nmea++;
+
+    /* Validate the checksum */
+    c1 = *nmea++;
+    if (checksum != build_hex_byte(c0, c1)) return GPS_ERROR_CHECKSUM;
+    c0 = *nmea++;
+
+    /* Check for the message footer */
+    c1 = *nmea++;
+    if ((c0 != '\r') || (c1 != '\n')) return GPS_ERROR_FOOT;
+
+    /* Parse the NMEA sentence tokens */
+    parse(tpv, (const char **)token);
+
     return GPS_OK;
 }
 

@@ -55,10 +55,13 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Setup routine
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const int MAX_CNT = 30000;
+int MAIN_CNT = 0;
 
 int main(int argc, char **argv)
 {
   int cpucnt = 3;
+  int th_id, retval;
   if(PRINT_COMMANDS)printf("Started using %d threads\n",cpucnt);
   
   pthread_t *threads = malloc(sizeof(pthread_t) * cpucnt);
@@ -69,72 +72,36 @@ int main(int argc, char **argv)
 
   // No thread starts before all are initialized;
   pthread_mutex_lock(&mutex);
-  int th_id=1
-  int retval = pthread_create(threads+th_id, NULL, i2c_thread, NULL);
+  th_id=1;
+  
+  retval = pthread_create(threads+th_id, NULL, i2c_thread, NULL);
   if(retval != 0)
   {
-    printf("Unable to start thread %d, error code %d\n", i, retval);
+    printf("Unable to start thread %d, error code %d\n", th_id, retval);
     return retval;
   }
   th_id++;
   retval = pthread_create(threads+th_id, NULL, intr_handler, NULL);
   if(retval != 0)
   {
-    printf("Unable to start thread %d, error code %d\n", i, retval);
+    printf("Unable to start thread %d, error code %d\n", th_id, retval);
     return retval;
   }
-  th_id++;
-  // retval = pthread_create(threads+th_id, NULL, gps_thread, NULL);
-  // if(retval != 0)
-  // {
-  //   printf("Unable to start thread %d, error code %d\n", i, retval);
-  //   return retval;
-  // }
+  //th_id++;
+  th_id = 3;
+  retval = pthread_create(threads+th_id, NULL, gps_thread, NULL);
+  if(retval != 0)
+  {
+    printf("Unable to start thread %d, error code %d\n", th_id, retval);
+    return retval;
+  }
+  
   pthread_mutex_unlock(&mutex);
 
 ////////////////////////////
 
 printf("thread initaited\n");
 
-  // intr_handler();                                                //Setup the timers for the receiver inputs and ESC's output.
-  // gps_setup();                                                  //Set the baud rate and output refreshrate of the GPS module.
-  // gyro_setup();                                                 //Initiallize the gyro and set the correct registers.
-
-  ////////////////// to be uncommented after composss node is made
-  // setup_compass();                                              //Initiallize the compass and set the correct registers.
-  // read_compass();                                               //Read and calculate the compass data.
-  // angle_yaw = actual_compass_heading;                           //Set the initial compass heading.
-
-  //Wait until the receiver is active.
-  // pthread_mutex_lock(&mutex);
-  // pthread_mutex_unlock(&mutex);
-  // while (channel_1 < 990 || channel_2 < 990 || channel_3 < 990 || channel_4 < 990)  {
-  //   error = 4;                                                  //Set the error status to 4.
-  //   LED_out(1);                                             //Show the error via the red LED.                                                  //Delay 4ms to simulate a 250Hz loop
-  //   pthread_mutex_lock(&mutex);
-  //   pthread_mutex_unlock(&mutex);
-  //   printf("wating for receiver\n");
-  // }
-  // error = 0;                                                    //Reset the error status to 0.
-
-
-  //When everything is done, turn off the led.
-  //Load the battery voltage to the battery_voltage variable.
-  //The STM32 uses a 12 bit analog to digital converter.
-  //analogRead => 0 = 0V ..... 4095 = 3.3V
-  //The voltage divider (1k & 10k) is 1:11.
-  //analogRead => 0 = 0V ..... 4095 = 36.3V
-  //36.3 / 4095 = 112.81.
-  //The variable battery_voltage holds 1050 if the battery voltage is 10.5V.
-  if(battery_voltage_available==1)
-  {
-    battery_voltage = (float)batteryRead() / 112.81;
-  }
-
-  //For calculating the pressure the 6 calibration values need to be polled from the MS5611.
-  //These 2 byte values are stored in the memory location 0xA2 and up.
-  // barometer_setup();
-////////////////////////////
   //Before starting the avarage accelerometer value is preloaded into the variables.
   millis(1000);
   pthread_mutex_lock(&mutex);
@@ -165,6 +132,13 @@ printf("thread initaited\n");
       program_off = 1;
       // break; 
     }
+    // In case the receiver is not calibrated
+    if(MAIN_CNT<=MAX_CNT){
+      MAIN_CNT++;
+    } else {
+      program_off = 1;
+    }
+
     if(receiver_watchdog < 750)receiver_watchdog ++;
     if(receiver_watchdog == 750 && start == 2){
       channel_1 = 1500;
@@ -276,11 +250,6 @@ printf("thread initaited\n");
       }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    //Creating the pulses for the ESC's is explained in this video:
-    //https://youtu.be/Nju9rvZOjVQ
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     if (start == 2) {                                                                //The motors are started.
       if (throttle > 1800) throttle = 1800;                                          //We need some room to keep full control at full throttle.
       esc_1 = throttle - pid_output_pitch + pid_output_roll - pid_output_yaw;        //Calculate the pulse for esc 1 (front-right - CCW).
@@ -316,38 +285,46 @@ printf("thread initaited\n");
     }
 
     motor_publish =1;
-    // actuator_write(m1, 1000);                                                 //give motors 1000us pulse.
-    // actuator_write(m2, 1000);
-    // actuator_write(m3, 1000);
-    // actuator_write(m4, 1000);
-
-    // // send_telemetry_data();
-    // //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-    // //Because of the angle calculation the loop time is getting very important. If the loop time is
-    // //longer or shorter than 4000us the angle calculation is off. If you modify the code make sure
-    // //that the loop time is still 4000us and no longer! More information can be found on
-    // //the Q&A page:
-    // //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
     if (get_cpu_usecs() - loop_timer > 40050)error = 2;                                      //Output an error if the loop time exceeds 4050us.
     while (get_cpu_usecs() - loop_timer < 40000);                                            //We wait until 4000us are passed.
-    if(PRINT_COMMANDS)printf("main loop_timer: %llu\n",get_cpu_usecs() - loop_timer );
-  	if(PRINT_COMMANDS)printf("flight_mode: %d  start: %d\n",flight_mode, start );
-    if(PRINT_COMMANDS)printf("esc1:%d esc2:%d esc3:%d esc4:%d\n",esc_1, esc_2, esc_3, esc_4 );
+    //if(PRINT_COMMANDS)printf("main loop_timer: %llu\n",get_cpu_usecs() - loop_timer );
+  	//if(PRINT_COMMANDS)printf("flight_mode: %d  start: %d\n",flight_mode, start );
+    //if(PRINT_COMMANDS)printf("esc1:%d esc2:%d esc3:%d esc4:%d\n",esc_1, esc_2, esc_3, esc_4 );
     loop_timer = get_cpu_usecs();                                                           //Set the timer for the next loop.
 
 
   }
 
-  for(int i = 1; i < cpucnt; i++) {
-    void * dummy;
-    int retval = pthread_join(*(threads+i), &dummy);
-    if(retval != 0)
-    {
-      printf("Unable to join thread %d, error code %d\n", i, retval);
-      return retval;
-    }
-  }
+  printf("Waiting for threads to join\n");
+  millis(1000);
+  void * dummy;
+  
+  th_id=1;
+  
+  printf("Waiting for threard nr.%d... ", th_id);
+  millis(1000);
+  retval = pthread_join(*(threads+th_id), &dummy);
+  if(retval != 0)
+  {
+    printf("Unable to join thread %d, error code %d\n", th_id, retval);
+  }  
+
+  th_id++;
+  printf("Waiting for threard nr.%d... ", th_id);
+  retval = pthread_join(*(threads+th_id), &dummy);
+  if(retval != 0)
+  {
+    printf("Unable to join thread %d, error code %d\n", th_id, retval);
+  }  
+  th_id++;
+  th_id = 3;
+  printf("Waiting for threard nr.%d... ", th_id);
+  retval = pthread_join(*(threads+th_id), &dummy);
+  if(retval != 0)
+  {
+    printf("Unable to join thread %d, error code %d\n", th_id, retval);
+  }  
   
   free(threads);
   return 0;

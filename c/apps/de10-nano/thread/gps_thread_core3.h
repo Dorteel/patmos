@@ -8,22 +8,26 @@
 
 void gps_thread()
 {
+    printf("Setting up GPS\n");
     gps_setup();
-    //Read the MPU-6050
-    __uint32_t timer = get_cpu_usecs();
+    //__uint32_t timer = get_cpu_usecs();
     while(!program_off){
         pthread_mutex_lock(&mutex);
         pthread_mutex_unlock(&mutex);
+        printf("zzz_CALL READ GPS_zzz\n");
         read_gps();
 
-        while (get_cpu_usecs() - timer < dt*1000000);
-        // if(PRINT_COMMANDS)
-        // {
-        //     pthread_mutex_lock(&mutex);
-        //     printf("gps loop_timer: %llu\n",get_cpu_usecs() - timer );
-        //     pthread_mutex_unlock(&mutex);
-        // }
-        timer = get_cpu_usecs();
+        printf("yyy_CALL END READ GPS_yyy\n");
+
+        //while (get_cpu_usecs() - timer < dt*1000000);
+        if(PRINT_COMMANDS)
+        {
+            pthread_mutex_lock(&mutex);
+            //printf("GPS = %d , %d\n",lat_gps_actual, lon_gps_actual);
+            // printf("gps loop_timer: %llu\n",get_cpu_usecs() - timer );
+            pthread_mutex_unlock(&mutex);
+        }
+      //  timer = get_cpu_usecs();
     }
 
 }

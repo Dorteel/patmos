@@ -29,6 +29,7 @@ char cVTG[6] = "$GNVTG";
 char cGGA[6] = "$GNGGA";
 char cGGL[6] = "$GNGGL";
 char cGSA[6] = "$GNGSA";
+char cGPSm[10] = "";    // for the GPS Mode 
 // Drone GPS = GNRMC, NEO6M GPS = GPRMC
 
 
@@ -41,35 +42,27 @@ void gps_setup(void)
     gps_init_tpv(&tpv);
 }
 
+
 void read_gps(void) {
     int loop_counter = 0;
     //------ to filter data ------------------
-    int str_temp[6];
-    char str_tempc[6];
-    int start_temp = 0;
-    int end_temp = 6;
+    int str_temp[6], str_mode = 0, tmpMode = 0;
+    char str_tempc[6], str_tempMode[10];
+    int start_temp = 0, start_mode = 0;
+    int end_temp = 6, end_mode = 10;
     bool b_temp = false;
     bool printed = false;
     bool equal_RMC = false;
     int start_c = 6;
     int end_c = 300;
-    bool equal_VTG = false;
+    bool equal_VTG = false, equal_GSA = false;
 
 
     // millis(250);
 
-    while (loop_counter < 500) {                                                           //Stay in this loop until the data variable data holds a q.
-        if (loop_counter < 500)loop_counter++;
-        // millis(4);                                                              //Wait for 4000us to simulate a 250Hz loop.
-        if (loop_counter == 1) {
-            // if(PRINT_COMMANDS)printf("\n");
-            // if(PRINT_COMMANDS)printf("====================================================================\n");
-            // if(PRINT_COMMANDS)printf("Checking gps data @ 9600bps\n");
-            // if(PRINT_COMMANDS)printf("====================================================================\n");
-        }
-        //if (loop_counter > 1 && loop_counter < 500){
-        if (loop_counter >= 1 && loop_counter < 500) {
-            while (uart2_read(&gps_data)) {
+    for(loop_counter=0;loop_counter<1000;loop_counter++) {     
+        millis(4);                                                    //Stay in this loop until the data variable data holds a q.
+            while (uart2_read(&gps_data) && !program_off) {
                 //printf("%c",gps_data);
                 //The delimiter "$" is 36 in ASCII
                 if (gps_data == 36) {
@@ -82,12 +75,13 @@ void read_gps(void) {
                 }
 
                 if (equal_RMC && (start_c < end_c)) {
+                    if ((char) gps_data != '\0'){
                     str_c[start_c] = (char) gps_data;
                     start_c++;
+                    }
                 }
                 //find the RMC string
-                if ((start_temp == end_temp) && !equal_RMC) {//&&!printed){
-                    //printed = true;
+                if ((start_temp == end_temp) && !equal_RMC) {
                     b_temp = false;
                     int comp = 0;
                     for (int j = 0; j < 6; j++) {
@@ -97,7 +91,7 @@ void read_gps(void) {
                     if (comp == 0) {
                         equal_RMC = true;
                     }
-                    start_temp = 0; // Try again?
+                    start_temp = 0; // Try again
                 }
 
                 //find the VTG string
@@ -106,29 +100,73 @@ void read_gps(void) {
                     int comp = 0;
                     for (int j = 0; j < 6; j++) {
                         comp = comp + str_tempc[j] - cVTG[j];
-                        //str_c[j] = str_tempc[j];
                     }
                     if (comp == 0) {
                         equal_VTG = true;
-                        //  printf("\n\n");
+                          //printf("\n\n");
                     } else {
                         equal_RMC = false; //If the next string is not VTG, it must go back false
                         start_c = 6;
                     }
                     start_temp = 0; // Try again?
                 }
+
+                //find the GSA string
+                if ((start_temp == end_temp) && equal_RMC && !equal_GSA) {
+                    b_temp = false;
+                    int comp = 0;
+                    for (int j = 0; j < 6; j++) {
+                        comp = comp + str_tempc[j] - cGSA[j];
+                        str_tempMode[j] = str_tempc[j];
+                        str_mode++;
+                    }
+                    if (comp == 0) {
+                        equal_GSA = true;
+                        //printf("CGSA header found");
+                    }else{
+                        str_mode = 0;
+                    }
+                    start_temp = 0; // Try again
+                } 
+                else if (equal_GSA && (str_mode<10))
+                {
+                     str_tempMode[str_mode] = (char) gps_data;
+                     str_mode++;
+                }else if (equal_GSA && (str_mode == 10) && (tmpMode == 0))
+                {
+                    tmpMode = (int)str_tempMode[9] - '0';
+                }
             }
-        }
+            pthread_mutex_lock(&mutex);
+            pthread_mutex_unlock(&mutex);
+            if(program_off){
+                break;
+            }
     }
+    //printf("%s\n", str_c);
+    //printf("\n!!!!END!!!\n");
+    // printf("Mode = %s, %c, %d\n", str_tempMode, str_tempMode[9], tmpMode);
+
+
     result = gps_decode(&tpv, str_c);
     if (result != GPS_OK && error_print)
     {
-        fprintf(stderr, "Error (%d): %s\n", result, gps_error_string(result));
+        printf(stderr, "Error (%d): %s\n", result, gps_error_string(result));
         //  return EXIT_FAILURE;
     }
+    // Overwrite value of mode with the tmp one
+    if(equal_GSA && (str_mode == 10)){
+        tpv.mode = tmpMode;
+    }
 
+    // pthread_mutex_unlock(&mutex);
+    //pthread_mutex_lock(&mutex);
     lat_gps_actual = abs((double)tpv.latitude/GPS_LAT_LON_FACTOR);
     lon_gps_actual = abs((double)tpv.longitude/GPS_LAT_LON_FACTOR);
+
+    if(PRINT_COMMANDS)printf("GPS = %d, %d, mode = %d\n", lat_gps_actual, lon_gps_actual, tpv.mode);
+    //pthread_mutex_unlock(&mutex);
+    
     double alt =  (double)tpv.altitude/GPS_VALUE_FACTOR;
 
     if (tpv.latitude >0)latitude_north = 1;                                               //When flying north of the equator the latitude_north variable will be set to 1.
@@ -143,6 +181,8 @@ void read_gps(void) {
         number_used_sats =8;                                             //Filter the number of satillites from the GGA line.
         pthread_mutex_unlock(&mutex);
     }
+
+
 
     if (lat_gps_previous == 0 && lon_gps_previous == 0) {                                              //If this is the first time the GPS code is used.
         lat_gps_previous = lat_gps_actual;                                                               //Set the lat_gps_previous variable to the lat_gps_actual variable.
@@ -291,6 +331,7 @@ void read_gps(void) {
             pthread_mutex_unlock(&mutex);
         }
     }
+    
 }
 
 

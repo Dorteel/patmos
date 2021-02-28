@@ -30,7 +30,7 @@ void i2c_thread()
         if(PRINT_COMMANDS)
         {
             pthread_mutex_lock(&mutex);
-            printf("i2c loop_timer: %llu\n",get_cpu_usecs() - timer );
+            //printf("i2c loop_timer: %llu\n",get_cpu_usecs() - timer );
             pthread_mutex_unlock(&mutex);
         }
         timer = get_cpu_usecs();
