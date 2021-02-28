@@ -65,6 +65,7 @@ int main() {
   
   for(int i = 1; i < cpucnt; i++) {
     void * dummy;
+    printf("i:%d\n",i );
     int retval = pthread_join(*(threads+i), &dummy);
     if(retval != 0)
     {

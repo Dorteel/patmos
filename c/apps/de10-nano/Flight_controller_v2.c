@@ -154,10 +154,6 @@ printf("thread initaited\n");
     }
     //Some functions are only accessible when the quadcopter is off.
     if (start == 0) {
-      //For compass calibration move both sticks to the top right.
-       if (channel_1 > 1900 && channel_2 < 1100 && channel_3 > 1900 && channel_4 > 1900)compass_calibration_on=1;
-      //Level calibration move both sticks to the top left.
-      if (channel_1 < 1100 && channel_2 < 1100 && channel_3 > 1900 && channel_4 < 1100)level_calibration_on=1;
       //Change settings
       if (channel_6 >= 1900 && previous_channel_6 == 0) {
         previous_channel_6 = 1;
