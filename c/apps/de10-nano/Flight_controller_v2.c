@@ -69,25 +69,25 @@ int main(int argc, char **argv)
 
   // No thread starts before all are initialized;
   pthread_mutex_lock(&mutex);
-  int th_id=1
+  int th_id=1;
   int retval = pthread_create(threads+th_id, NULL, i2c_thread, NULL);
   if(retval != 0)
   {
-    printf("Unable to start thread %d, error code %d\n", i, retval);
+    printf("Unable to start thread %d, error code %d\n", th_id, retval);
     return retval;
   }
   th_id++;
   retval = pthread_create(threads+th_id, NULL, intr_handler, NULL);
   if(retval != 0)
   {
-    printf("Unable to start thread %d, error code %d\n", i, retval);
+    printf("Unable to start thread %d, error code %d\n", th_id, retval);
     return retval;
   }
-  th_id++;
+  // th_id++;
   // retval = pthread_create(threads+th_id, NULL, gps_thread, NULL);
   // if(retval != 0)
   // {
-  //   printf("Unable to start thread %d, error code %d\n", i, retval);
+  //   printf("Unable to start thread %d, error code %d\n", th_id, retval);
   //   return retval;
   // }
   pthread_mutex_unlock(&mutex);
@@ -180,10 +180,6 @@ printf("thread initaited\n");
     }
     //Some functions are only accessible when the quadcopter is off.
     if (start == 0) {
-      //For compass calibration move both sticks to the top right.
-       if (channel_1 > 1900 && channel_2 < 1100 && channel_3 > 1900 && channel_4 > 1900)compass_calibration_on=1;
-      //Level calibration move both sticks to the top left.
-      if (channel_1 < 1100 && channel_2 < 1100 && channel_3 > 1900 && channel_4 < 1100)level_calibration_on=1;
       //Change settings
       if (channel_6 >= 1900 && previous_channel_6 == 0) {
         previous_channel_6 = 1;
@@ -339,16 +335,28 @@ printf("thread initaited\n");
 
   }
 
-  for(int i = 1; i < cpucnt; i++) {
+    th_id=1;
     void * dummy;
-    int retval = pthread_join(*(threads+i), &dummy);
+    retval = pthread_join(*(threads+th_id), &dummy);
     if(retval != 0)
     {
-      printf("Unable to join thread %d, error code %d\n", i, retval);
+      printf("Unable to join thread %d, error code %d\n", th_id, retval);
       return retval;
     }
-  }
-  
+    th_id++;
+    retval = pthread_join(*(threads+th_id), &dummy);
+    if(retval != 0)
+    {
+      printf("Unable to join thread %d, error code %d\n", th_id, retval);
+      return retval;
+    }
+    // th_id++;
+    // retval = pthread_join(*(threads+th_id), &dummy);
+    // if(retval != 0)
+    // {
+    //   printf("Unable to join thread %d, error code %d\n", th_id, retval);
+    //   return retval;
+    // }  
   free(threads);
   return 0;
 }
