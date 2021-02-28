@@ -15,20 +15,14 @@ void i2c_thread()
     pthread_mutex_unlock(&mutex);
     barometer_setup();
     if(GYRO_CALLIB)callibrate_gyro();
-    //Read the MPU-6050
+    if(COMP_CALLIB)callibrate_compass();
+    if(LEVEL_CALLIB)callibrate_level();
+            //Read the MPU-6050
     __uint32_t timer = get_cpu_usecs();
     while(!program_off){
         //Read the MPU-6050, barmeter and compass
         pthread_mutex_lock(&mutex);
         pthread_mutex_unlock(&mutex);
-        if(compass_calibration_on==1)
-        {
-            callibrate_compass();
-        }
-        if(level_calibration_on==1)
-        {
-            callibrate_level();
-        }
         read_compass();
         gyro_signalen();
         read_barometer();

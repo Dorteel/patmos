@@ -57,6 +57,7 @@ int main() {
 
     printf("angle_pitch:%f angle_roll:%f angle_yaw:%f\n",angle_pitch, angle_roll, angle_yaw);
     printf("Pressure : %f \n", actual_pressure);
+    // printf("angle_yaw : %f \n", angle_yaw);
     printf("actual_compass_heading:%f\n",actual_compass_heading );
     while (get_cpu_usecs() - loop_timer < dt*1000000);                                            //We wait until 4000us are passed.
     loop_timer = get_cpu_usecs();

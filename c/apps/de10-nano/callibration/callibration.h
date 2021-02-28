@@ -14,7 +14,8 @@
   if(PRINT_COMMANDS)printf("compass callibration\n");
    // LED_out(1);                                                             //The red led will indicate that the compass calibration is active.
    // LED_out(0);                                                            //Turn off the green led as we don't need it.
-   while (channel_2 < 1900) {                                                 //Stay in this loop until the pilot lowers the pitch stick of the transmitter.
+   for (int i = 0; i < 100; ++i)
+   {                                                 //Stay in this loop until the pilot lowers the pitch stick of the transmitter.
     // intr_handler();
     // send_telemetry_data();                                                   //Send telemetry data to the ground station.
      read_compass();                                                          //Read the raw compass values.

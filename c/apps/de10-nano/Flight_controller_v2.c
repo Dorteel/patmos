@@ -69,30 +69,27 @@ int main(int argc, char **argv)
 
   // No thread starts before all are initialized;
   pthread_mutex_lock(&mutex);
-  for(int i = 1; i < cpucnt;)
+  int th_id=1
+  int retval = pthread_create(threads+th_id, NULL, i2c_thread, NULL);
+  if(retval != 0)
   {
-    int retval = pthread_create(threads+i, NULL, i2c_thread, NULL);
-    if(retval != 0)
-    {
-      printf("Unable to start thread %d, error code %d\n", i, retval);
-      return retval;
-    }
-    i++;
-    retval = pthread_create(threads+i, NULL, intr_handler, NULL);
-    if(retval != 0)
-    {
-      printf("Unable to start thread %d, error code %d\n", i, retval);
-      return retval;
-    }
-    i++;
-    // retval = pthread_create(threads+i, NULL, gps_thread, NULL);
-    // if(retval != 0)
-    // {
-    //   printf("Unable to start thread %d, error code %d\n", i, retval);
-    //   return retval;
-    // }
-    // i++;
+    printf("Unable to start thread %d, error code %d\n", i, retval);
+    return retval;
   }
+  th_id++;
+  retval = pthread_create(threads+th_id, NULL, intr_handler, NULL);
+  if(retval != 0)
+  {
+    printf("Unable to start thread %d, error code %d\n", i, retval);
+    return retval;
+  }
+  th_id++;
+  // retval = pthread_create(threads+th_id, NULL, gps_thread, NULL);
+  // if(retval != 0)
+  // {
+  //   printf("Unable to start thread %d, error code %d\n", i, retval);
+  //   return retval;
+  // }
   pthread_mutex_unlock(&mutex);
 
 ////////////////////////////

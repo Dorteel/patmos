@@ -153,7 +153,6 @@ void vertical_acceleration_calculations(void) {
     }
     acc_z_average_total = acc_z_average_long_total / 50;
 
-
     acc_alt_integrated += acc_total_vector - acc_z_average_total;
     if (acc_total_vector - acc_z_average_total < 400 || acc_total_vector - acc_z_average_total > 400) {
         if (acc_z_average_short_total / 25 - acc_z_average_total < 500 && acc_z_average_short_total / 25 - acc_z_average_total > -500)
@@ -211,19 +210,12 @@ void gyro_signalen()
     angle_pitch_acc = asin((float)acc_y/acc_total_vector)* 57.296;                  //Calculate the pitch angle.
     angle_roll_acc = asin((float)acc_x/acc_total_vector)* -57.296;                  //Calculate the roll angle.
 
+    pthread_mutex_unlock(&mutex);
 
     ///////////////////////////////////to be tested
+    angle_pitch_acc += -14;
+    angle_roll_acc += 9;
 
-    // angle_pitch_acc += 82;
-    // angle_pitch_acc += 82;
-    // if(!first_angle){
-    //   pthread_mutex_lock(&mutex);
-    // angle_pitch = angle_pitch_acc;                                                 //Set the pitch angle to the accelerometer angle.
-    // angle_roll = angle_roll_acc;                                                   //Set the roll angle to the accelerometer angle.
-    // pthread_mutex_unlock(&mutex);
-    // first_angle = true;
-    // }
-    // else{
     // if(first_time)
     // {
     //   pitch_offset = -angle_pitch_acc;                                         //start the pitch angle from 0 without any offsets
@@ -244,10 +236,7 @@ void gyro_signalen()
     pthread_mutex_lock(&mutex);
     angle_pitch = angle_pitch * 0.98 + angle_pitch_acc * 0.02;                 //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
     angle_roll = angle_roll * 0.9996 + angle_roll_acc * 0.0004;                    //Correct the drift of the gyro roll angle with the accelerometer roll angle.
-    // pthread_mutex_unlock(&mutex);
-    // }
 
-    // pthread_mutex_lock(&mutex);
     pitch_level_adjust = angle_pitch;                                           //Calculate the pitch angle correction.
     roll_level_adjust = angle_roll; 
     pthread_mutex_unlock(&mutex);

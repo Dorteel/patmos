@@ -19,10 +19,13 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-float dt =0.04; /// loop timer in secs
+float dt =0.05; /// loop timer in secs
 int motor_publish =0;///publish motor commands
 #define battery_voltage_available 0// battery_voltage input from the fpga to compensate the esc input for change in battery volatge(will be later provided by DTU)
 #define GYRO_CALLIB 1 //set to 1 to swtich on gyro callibration before flight
+#define COMP_CALLIB 0 //set to 1 to swtich on gyro callibration before flight
+#define LEVEL_CALLIB 0 //set to 1 to swtich on gyro callibration before flight
+
 //channel 1- roll
 // channel 2 - pitch
 // channel 3- throttle
@@ -75,7 +78,9 @@ int pid_max_yaw = 400;                            //Maximum output of the PID-co
 
 
 bool first_angle=false;
-
+float pitch_offset, roll_offset;
+int first_time=1;
+int acc_count=0;
 //During flight the battery voltage drops and the motors are spinning at a lower RPM. This has a negative effecct on the
 //altitude hold function. With the battery_compensation variable it's possible to compensate for the battery voltage drop.
 //Increase this value when the quadcopter drops due to a lower battery voltage during a non altitude hold flight.
