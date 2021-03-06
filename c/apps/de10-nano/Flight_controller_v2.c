@@ -87,8 +87,7 @@ int main(int argc, char **argv)
     printf("Unable to start thread %d, error code %d\n", th_id, retval);
     return retval;
   }
-  //th_id++;
-  th_id = 3;
+  th_id++;
   retval = pthread_create(threads+th_id, NULL, gps_thread, NULL);
   if(retval != 0)
   {
@@ -314,7 +313,6 @@ printf("thread initaited\n");
     printf("Unable to join thread %d, error code %d\n", th_id, retval);
   }  
   th_id++;
-  th_id = 3;
   printf("Waiting for threard nr.%d... ", th_id);
   retval = pthread_join(*(threads+th_id), &dummy);
   if(retval != 0)

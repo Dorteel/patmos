@@ -126,6 +126,7 @@ void intr_handler(void) {
         motor_publish=0;
       }
   }
+  if(PRINT_COMMANDS)printf("intr_end");
 }
 
 

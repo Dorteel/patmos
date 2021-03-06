@@ -35,7 +35,7 @@ void i2c_thread()
         }
         timer = get_cpu_usecs();
     }                                                           //Invert acc_z.
-
+    if(PRINT_COMMANDS)printf("i2c_end");
 }
 
 #endif //PATMOS_I2C_THREAD_H

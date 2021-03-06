@@ -1,7 +1,7 @@
-MAIN?=Flight_controller_v2
+# MAIN?=Flight_controller_v2
 
 #MAIN?=blinking
-#MAIN?=multi_core_test/i2c_multicore_test
+MAIN?=multi_core_test/gps_multicore_test
 SERIAL?=/dev/ttyUSB0
 I2C?=basic_lib/i2c_master
 BARO?=test/baro/baro
