@@ -61,13 +61,14 @@ void read_gps(void) {
     // millis(250);
 
     for(loop_counter=0;loop_counter<1000;loop_counter++) {     
-        millis(4);                                                    //Stay in this loop until the data variable data holds a q.
-            // for(int j=0;j<300;j++){
-                // pthread_mutex_lock(&mutex);
-                // printf("%c",gps_data);
-                // pthread_mutex_unlock(&mutex);
-                // uart2_read(&gps_data);
-                // if(program_off) break;
+            for(int j=0;j<300;j++){
+                if(program_off) break;
+                millis(4);
+                uart2_read(&gps_data);
+                pthread_mutex_lock(&mutex);
+                printf("%c",gps_data);
+                pthread_mutex_unlock(&mutex);
+                
                 // if (gps_data == 36) {
                 //     b_temp = true;
                 // }
@@ -139,7 +140,7 @@ void read_gps(void) {
                 // {
                 //     tmpMode = (int)str_tempMode[9] - '0';
                 // }
-            // }
+            }
             pthread_mutex_lock(&mutex);
             pthread_mutex_unlock(&mutex);
             if(program_off){

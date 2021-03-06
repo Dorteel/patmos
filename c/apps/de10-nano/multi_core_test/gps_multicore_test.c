@@ -62,7 +62,7 @@ int main() {
       break; 
     }
     pthread_mutex_lock(&mutex);
-    printf("ch1: %d, ch2:%d, ch3:%d, ch4:%d\n", channel_1, channel_2, channel_3, channel_4);
+    // printf("ch1: %d, ch2:%d, ch3:%d, ch4:%d\n", channel_1, channel_2, channel_3, channel_4);
     pthread_mutex_unlock(&mutex);
     // printf("angle_pitch:%f angle_roll:%f angle_yaw:%f\n",angle_pitch, angle_roll, angle_yaw);
     // printf("Pressure : %f \n", actual_pressure);
