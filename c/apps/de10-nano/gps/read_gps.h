@@ -62,80 +62,83 @@ void read_gps(void) {
 
     for(loop_counter=0;loop_counter<1000;loop_counter++) {     
         millis(4);                                                    //Stay in this loop until the data variable data holds a q.
-            // while (uart2_read(&gps_data) && !program_off) {
-                //printf("%c",gps_data);
-                //The delimiter "$" is 36 in ASCII
-            //     if (gps_data == 36) {
-            //         b_temp = true;
-            //     }
-            //     if (b_temp && (start_temp < end_temp)) {
-            //         str_temp[start_temp] = gps_data;
-            //         str_tempc[start_temp] = (char) gps_data;
-            //         start_temp++;
-            //     }
+            // for(int j=0;j<300;j++){
+                // pthread_mutex_lock(&mutex);
+                // printf("%c",gps_data);
+                // pthread_mutex_unlock(&mutex);
+                // uart2_read(&gps_data);
+                // if(program_off) break;
+                // if (gps_data == 36) {
+                //     b_temp = true;
+                // }
+                // if (b_temp && (start_temp < end_temp)) {
+                //     str_temp[start_temp] = gps_data;
+                //     str_tempc[start_temp] = (char) gps_data;
+                //     start_temp++;
+                // }
 
-            //     if (equal_RMC && (start_c < end_c)) {
-            //         if ((char) gps_data != '\0'){
-            //         str_c[start_c] = (char) gps_data;
-            //         start_c++;
-            //         }
-            //     }
-            //     //find the RMC string
-            //     if ((start_temp == end_temp) && !equal_RMC) {
-            //         b_temp = false;
-            //         int comp = 0;
-            //         for (int j = 0; j < 6; j++) {
-            //             comp = comp + str_tempc[j] - cRMC[j];
-            //             str_c[j] = str_tempc[j];
-            //         }
-            //         if (comp == 0) {
-            //             equal_RMC = true;
-            //         }
-            //         start_temp = 0; // Try again
-            //     }
+                // if (equal_RMC && (start_c < end_c)) {
+                //     if ((char) gps_data != '\0'){
+                //     str_c[start_c] = (char) gps_data;
+                //     start_c++;
+                //     }
+                // }
+                // //find the RMC string
+                // if ((start_temp == end_temp) && !equal_RMC) {
+                //     b_temp = false;
+                //     int comp = 0;
+                //     for (int j = 0; j < 6; j++) {
+                //         comp = comp + str_tempc[j] - cRMC[j];
+                //         str_c[j] = str_tempc[j];
+                //     }
+                //     if (comp == 0) {
+                //         equal_RMC = true;
+                //     }
+                //     start_temp = 0; // Try again
+                // }
 
-            //     //find the VTG string
-            //     if ((start_temp == end_temp) && equal_RMC && !equal_VTG) {
-            //         b_temp = false;
-            //         int comp = 0;
-            //         for (int j = 0; j < 6; j++) {
-            //             comp = comp + str_tempc[j] - cVTG[j];
-            //         }
-            //         if (comp == 0) {
-            //             equal_VTG = true;
-            //               //printf("\n\n");
-            //         } else {
-            //             equal_RMC = false; //If the next string is not VTG, it must go back false
-            //             start_c = 6;
-            //         }
-            //         start_temp = 0; // Try again?
-            //     }
+                // //find the VTG string
+                // if ((start_temp == end_temp) && equal_RMC && !equal_VTG) {
+                //     b_temp = false;
+                //     int comp = 0;
+                //     for (int j = 0; j < 6; j++) {
+                //         comp = comp + str_tempc[j] - cVTG[j];
+                //     }
+                //     if (comp == 0) {
+                //         equal_VTG = true;
+                //           //printf("\n\n");
+                //     } else {
+                //         equal_RMC = false; //If the next string is not VTG, it must go back false
+                //         start_c = 6;
+                //     }
+                //     start_temp = 0; // Try again?
+                // }
 
-            //     //find the GSA string
-            //     if ((start_temp == end_temp) && equal_RMC && !equal_GSA) {
-            //         b_temp = false;
-            //         int comp = 0;
-            //         for (int j = 0; j < 6; j++) {
-            //             comp = comp + str_tempc[j] - cGSA[j];
-            //             str_tempMode[j] = str_tempc[j];
-            //             str_mode++;
-            //         }
-            //         if (comp == 0) {
-            //             equal_GSA = true;
-            //             //printf("CGSA header found");
-            //         }else{
-            //             str_mode = 0;
-            //         }
-            //         start_temp = 0; // Try again
-            //     } 
-            //     else if (equal_GSA && (str_mode<10))
-            //     {
-            //          str_tempMode[str_mode] = (char) gps_data;
-            //          str_mode++;
-            //     }else if (equal_GSA && (str_mode == 10) && (tmpMode == 0))
-            //     {
-            //         tmpMode = (int)str_tempMode[9] - '0';
-            //     }
+                // //find the GSA string
+                // if ((start_temp == end_temp) && equal_RMC && !equal_GSA) {
+                //     b_temp = false;
+                //     int comp = 0;
+                //     for (int j = 0; j < 6; j++) {
+                //         comp = comp + str_tempc[j] - cGSA[j];
+                //         str_tempMode[j] = str_tempc[j];
+                //         str_mode++;
+                //     }
+                //     if (comp == 0) {
+                //         equal_GSA = true;
+                //         //printf("CGSA header found");
+                //     }else{
+                //         str_mode = 0;
+                //     }
+                //     start_temp = 0; // Try again
+                // } 
+                // else if (equal_GSA && (str_mode<10))
+                // {
+                //      str_tempMode[str_mode] = (char) gps_data;
+                //      str_mode++;
+                // }else if (equal_GSA && (str_mode == 10) && (tmpMode == 0))
+                // {
+                //     tmpMode = (int)str_tempMode[9] - '0';
+                // }
             // }
             pthread_mutex_lock(&mutex);
             pthread_mutex_unlock(&mutex);
@@ -144,8 +147,10 @@ void read_gps(void) {
             }
     }
     micros(10);
-    printf("programm off:%d\n", program_off);
-    printf("%s\n", str_c);
+    pthread_mutex_lock(&mutex);
+    printf("programm off_gps:%d\n", program_off);
+    // printf("%s\n", str_c);
+    pthread_mutex_unlock(&mutex);
     //printf("\n!!!!END!!!\n");
     // printf("Mode = %s, %c, %d\n", str_tempMode, str_tempMode[9], tmpMode);
 

@@ -126,7 +126,9 @@ void intr_handler(void) {
         motor_publish=0;
       }
   }
-  if(PRINT_COMMANDS)printf("intr_end");
+  pthread_mutex_lock(&mutex);
+  if(PRINT_COMMANDS){printf("intr_end");}
+  pthread_mutex_unlock(&mutex);
 }
 
 

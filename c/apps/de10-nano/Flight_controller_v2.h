@@ -22,7 +22,7 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 float dt =0.05; /// loop timer in secs
 int motor_publish =0;///publish motor commands
 #define battery_voltage_available 0// battery_voltage input from the fpga to compensate the esc input for change in battery volatge(will be later provided by DTU)
-#define GYRO_CALLIB 1 //set to 1 to swtich on gyro callibration before flight
+#define GYRO_CALLIB 0 //set to 1 to swtich on gyro callibration before flight
 #define COMP_CALLIB 0 //set to 1 to swtich on gyro callibration before flight
 #define LEVEL_CALLIB 0 //set to 1 to swtich on gyro callibration before flight
 

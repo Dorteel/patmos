@@ -7,18 +7,23 @@
 #define PATMOS_GPS_THREAD_H
 
 void gps_thread()
-{
+{   
+    pthread_mutex_lock(&mutex);
     printf("Setting up GPS\n");
+    pthread_mutex_unlock(&mutex);
     gps_setup();
     //__uint32_t timer = get_cpu_usecs();
-    for(int j=0;j<5;j++){
+    while(!program_off){
         pthread_mutex_lock(&mutex);
         printf("zzz_CALL READ GPS_zzz\n");
         pthread_mutex_unlock(&mutex);
         
         read_gps();
 
+        pthread_mutex_lock(&mutex);
         printf("yyy_CALL END READ GPS_yyy\n");
+        pthread_mutex_unlock(&mutex);
+        
     
         //while (get_cpu_usecs() - timer < dt*1000000);
         // if(PRINT_COMMANDS)

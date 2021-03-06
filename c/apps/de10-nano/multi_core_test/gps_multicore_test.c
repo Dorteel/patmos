@@ -52,8 +52,6 @@ int main() {
   loop_timer = get_cpu_usecs();
   while(!program_off)
   { 
-    pthread_mutex_lock(&mutex);
-    pthread_mutex_unlock(&mutex);
 
         //Stopping the code: throttle low and yaw right, roll left and pitch down
     if(channel_3 < 1050 && channel_4 > 1950 && channel_1 < 1050 && channel_2 > 1950)
@@ -63,7 +61,9 @@ int main() {
       printf("main loop end");
       break; 
     }
+    pthread_mutex_lock(&mutex);
     printf("ch1: %d, ch2:%d, ch3:%d, ch4:%d\n", channel_1, channel_2, channel_3, channel_4);
+    pthread_mutex_unlock(&mutex);
     // printf("angle_pitch:%f angle_roll:%f angle_yaw:%f\n",angle_pitch, angle_roll, angle_yaw);
     // printf("Pressure : %f \n", actual_pressure);
     // printf("angle_yaw : %f \n", angle_yaw);

@@ -27,15 +27,17 @@ void i2c_thread()
         gyro_signalen();
         read_barometer();
         while (get_cpu_usecs() - timer < dt*1000000);
-        if(PRINT_COMMANDS)
-        {
-            pthread_mutex_lock(&mutex);
-            //printf("i2c loop_timer: %llu\n",get_cpu_usecs() - timer );
-            pthread_mutex_unlock(&mutex);
-        }
+        // if(PRINT_COMMANDS)
+        // {
+        //     pthread_mutex_lock(&mutex);
+        //     printf("i2c loop_timer: %llu\n",get_cpu_usecs() - timer );
+        //     pthread_mutex_unlock(&mutex);
+        // }
         timer = get_cpu_usecs();
     }                                                           //Invert acc_z.
-    if(PRINT_COMMANDS)printf("i2c_end");
+    pthread_mutex_lock(&mutex);
+    if(PRINT_COMMANDS){printf("i2c_end");}
+    pthread_mutex_unlock(&mutex);
 }
 
 #endif //PATMOS_I2C_THREAD_H
