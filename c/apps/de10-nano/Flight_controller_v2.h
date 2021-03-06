@@ -45,7 +45,7 @@ int motor_publish =0;///publish motor commands
 //   /        \
 //m3/          \m2
 
-#define PRINT_COMMANDS true
+#define PRINT_COMMANDS false
 #define STM32_board_LED PC13               //Change PC13 if the LED on the STM32 is connected to another output.
 
 //Tuning parameters/settings is explained in this video: https://youtu.be/ys-YpOaA2ME

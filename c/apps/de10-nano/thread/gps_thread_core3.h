@@ -14,9 +14,9 @@ void gps_thread()
     gps_setup();
     //__uint32_t timer = get_cpu_usecs();
     while(!program_off){
-        pthread_mutex_lock(&mutex);
+        // pthread_mutex_lock(&mutex);
         printf("zzz_CALL READ GPS_zzz\n");
-        pthread_mutex_unlock(&mutex);
+        // pthread_mutex_unlock(&mutex);
         
         read_gps();
 
