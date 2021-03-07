@@ -20,10 +20,8 @@ unsigned char gps_data=0;
 
 struct gps_tpv tpv;
 int result;
+char str_c_tmp[500];
 //---- to filter Data
-char str[500];
-int str_i[500];
-char str_c[500];
 char cRMC[6] = "$GNRMC";
 char cVTG[6] = "$GNVTG";
 char cGGA[6] = "$GNGGA";
@@ -46,7 +44,7 @@ void gps_setup(void)
 void read_gps(void) {
     int loop_counter = 0;
     //------ to filter data ------------------
-    int str_temp[6], str_mode = 0, tmpMode = 0;
+    int str_temp[6];
     char str_tempc[6], str_tempMode[10];
     int start_temp = 0, start_mode = 0;
     int end_temp = 6, end_mode = 10;
@@ -55,12 +53,13 @@ void read_gps(void) {
     bool equal_RMC = false;
     int start_c = 6;
     int end_c = 300;
-    bool equal_VTG = false, equal_GSA = false;
+    bool equal_VTG = false, equal_GSA_tmp=false;
+    int str_mode_tmp, tmpMode_tmp;
 
 
     // millis(250);
 
-    // for(loop_counter=0;loop_counter<1000;loop_counter++) {     
+    for(loop_counter=0;loop_counter<500;loop_counter++) {     
             for(int j=0;j<300;j++){
                 if(program_off) break;
                 // millis(4);
@@ -81,7 +80,7 @@ void read_gps(void) {
 
                     if (equal_RMC && (start_c < end_c)) {
                         if ((char) gps_data != '\0'){
-                        str_c[start_c] = (char) gps_data;
+                        str_c_tmp[start_c] = (char) gps_data;
                         start_c++;
                         }
                     }
@@ -91,7 +90,7 @@ void read_gps(void) {
                         int comp = 0;
                         for (int j = 0; j < 6; j++) {
                             comp = comp + str_tempc[j] - cRMC[j];
-                            str_c[j] = str_tempc[j];
+                            str_c_tmp[j] = str_tempc[j];
                         }
                         if (comp == 0) {
                             equal_RMC = true;
@@ -117,65 +116,72 @@ void read_gps(void) {
                     }
 
                     //find the GSA string
-                    if ((start_temp == end_temp) && equal_RMC && !equal_GSA) {
+                    if ((start_temp == end_temp) && equal_RMC && !equal_GSA_tmp) {
                         b_temp = false;
                         int comp = 0;
                         for (int j = 0; j < 6; j++) {
                             comp = comp + str_tempc[j] - cGSA[j];
                             str_tempMode[j] = str_tempc[j];
-                            str_mode++;
+                            str_mode_tmp++;
                         }
                         if (comp == 0) {
-                            equal_GSA = true;
+                            equal_GSA_tmp = true;
                             //printf("CGSA header found");
                         }else{
-                            str_mode = 0;
+                            str_mode_tmp = 0;
                         }
                         start_temp = 0; // Try again
                     } 
-                    else if (equal_GSA && (str_mode<10))
+                    else if (equal_GSA_tmp && (str_mode_tmp<10))
                     {
-                         str_tempMode[str_mode] = (char) gps_data;
-                         str_mode++;
-                    }else if (equal_GSA && (str_mode == 10) && (tmpMode == 0))
+                         str_tempMode[str_mode_tmp] = (char) gps_data;
+                         str_mode_tmp++;
+                    }else if (equal_GSA_tmp && (str_mode_tmp == 10) && (tmpMode_tmp == 0))
                     {
-                        tmpMode = (int)str_tempMode[9] - '0';
+                        tmpMode_tmp = (int)str_tempMode[9] - '0';
                     }
                 }
             }
-    //         pthread_mutex_lock(&mutex);
-    //         pthread_mutex_unlock(&mutex);
-    //         if(program_off){
-    //             break;
-    //         }
-    // }
-    micros(10);
+            if(program_off){
+                break;
+            }
+    }
     pthread_mutex_lock(&mutex);
-    printf("programm off_gps:%d\n", program_off);
-    printf("%s\n", str_c);
+    for (int i = 0; i < 300; i++)
+    {
+        str_c[i] = str_c_tmp[i];
+    }
+    str_mode = str_mode_tmp;
+    tmpMode = tmpMode_tmp;
+    equal_GSA = equal_GSA_tmp;
+
+    printf("program off_gps:%d\n", program_off);
+    printf("%s\n", str_c_tmp);
     pthread_mutex_unlock(&mutex);
     //printf("\n!!!!END!!!\n");
     // printf("Mode = %s, %c, %d\n", str_tempMode, str_tempMode[9], tmpMode);
+    
+}
 
 
-    // result = gps_decode(&tpv, str_c);
+void gps_get_lat_long()
+{
+    result = gps_decode(&tpv, str_c);
     // if (result != GPS_OK && error_print)
     // {
     //     printf(stderr, "Error (%d): %s\n", result, gps_error_string(result));
     //     //  return EXIT_FAILURE;
     // }
-    // // Overwrite value of mode with the tmp one
-    // if(equal_GSA && (str_mode == 10)){
-    //     tpv.mode = tmpMode;
-    // }
+    // Overwrite value of mode with the tmp one
+    if(equal_GSA && (str_mode == 10)){
+        tpv.mode = tmpMode;
+    }
+    lat_gps_actual = abs((double)tpv.latitude/GPS_LAT_LON_FACTOR);
+    lon_gps_actual = abs((double)tpv.longitude/GPS_LAT_LON_FACTOR);
 
-    // // pthread_mutex_unlock(&mutex);
-    // //pthread_mutex_lock(&mutex);
-    // lat_gps_actual = abs((double)tpv.latitude/GPS_LAT_LON_FACTOR);
-    // lon_gps_actual = abs((double)tpv.longitude/GPS_LAT_LON_FACTOR);
-
-    // if(PRINT_COMMANDS)printf("GPS = %d, %d, mode = %d\n", lat_gps_actual, lon_gps_actual, tpv.mode);
-    //pthread_mutex_unlock(&mutex);
+    pthread_mutex_lock(&mutex);
+    if(PRINT_COMMANDS)printf("GPS = %d, %d, mode = %d\n", lat_gps_actual, lon_gps_actual, tpv.mode);
+    pthread_mutex_unlock(&mutex);
     
     // double alt =  (double)tpv.altitude/GPS_VALUE_FACTOR;
 
@@ -341,8 +347,6 @@ void read_gps(void) {
     //         pthread_mutex_unlock(&mutex);
     //     }
     // }
-    
 }
-
 
 #endif //PATMOS_READ_GPS_H

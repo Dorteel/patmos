@@ -48,12 +48,12 @@ void gyro_setup()
 
 void callibrate_gyro()
 {
-    if(PRINT_COMMANDS)
-    {
+    // if(PRINT_COMMANDS)
+    // {
         pthread_mutex_lock(&mutex);
         printf("gyro callibration\n");
         pthread_mutex_unlock(&mutex);
-    }
+    // }
     cal_int = 0;                                                                        //Set the cal_int variable to zero.
     if (cal_int != 500) {
         //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).
@@ -97,12 +97,12 @@ void callibrate_gyro()
         gyro_pitch_cal /= 500;                                                           //Divide the pitch total by 2000.
         gyro_yaw_cal /= 500;                                                             //Divide the yaw total by 2000.
     }
-    if(PRINT_COMMANDS)
-    {
+    // if(PRINT_COMMANDS)
+    // {
         pthread_mutex_lock(&mutex);
         printf("gyro callibration done\n");
         pthread_mutex_unlock(&mutex);
-    }
+    // }
 
 }
 

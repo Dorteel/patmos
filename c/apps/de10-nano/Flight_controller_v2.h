@@ -22,7 +22,7 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 float dt =0.05; /// loop timer in secs
 int motor_publish =0;///publish motor commands
 #define battery_voltage_available 0// battery_voltage input from the fpga to compensate the esc input for change in battery volatge(will be later provided by DTU)
-#define GYRO_CALLIB 0 //set to 1 to swtich on gyro callibration before flight
+#define GYRO_CALLIB 1 //set to 1 to swtich on gyro callibration before flight
 #define COMP_CALLIB 0 //set to 1 to swtich on gyro callibration before flight
 #define LEVEL_CALLIB 0 //set to 1 to swtich on gyro callibration before flight
 
@@ -210,6 +210,10 @@ float l_lon_gps_float_adjust, l_lat_gps_float_adjust, gps_man_adjust_heading;
 float return_to_home_lat_factor, return_to_home_lon_factor, return_to_home_move_factor;
 __uint8_t home_point_recorded;
 __int32_t lat_gps_home, lon_gps_home;
+char str_c[500];
+int str_mode, tmpMode;
+bool equal_GSA = false;
+
 
 short int acc_axis[4], gyro_axis[4];
 

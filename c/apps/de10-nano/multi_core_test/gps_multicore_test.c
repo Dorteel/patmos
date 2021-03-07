@@ -49,6 +49,8 @@ int main() {
   }
 
   pthread_mutex_unlock(&mutex);
+
+  gps_setup();
   loop_timer = get_cpu_usecs();
   while(!program_off)
   { 
@@ -61,6 +63,7 @@ int main() {
       printf("main loop end");
       break; 
     }
+    // gps_get_lat_long();
     pthread_mutex_lock(&mutex);
     // printf("ch1: %d, ch2:%d, ch3:%d, ch4:%d\n", channel_1, channel_2, channel_3, channel_4);
     pthread_mutex_unlock(&mutex);

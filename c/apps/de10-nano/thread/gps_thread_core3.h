@@ -11,7 +11,7 @@ void gps_thread()
     pthread_mutex_lock(&mutex);
     printf("Setting up GPS\n");
     pthread_mutex_unlock(&mutex);
-    gps_setup();
+    // gps_setup();
     //__uint32_t timer = get_cpu_usecs();
     while(!program_off){
         // pthread_mutex_lock(&mutex);
